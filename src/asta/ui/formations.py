@@ -25,6 +25,7 @@ from asta.data.keepers import conceded_by_team
 from asta.domain.models import STARTING_LABEL, LineupSpot, Starting, TeamLineup
 from asta.domain.reducer import AuctionState
 from asta.ui.crests import crest_url
+from asta.ui.wiring import listone_path
 
 _CSS = """
 <style>
@@ -121,7 +122,7 @@ def sorted_lineups(
         lineups: le formazioni da ordinare.
         conceded: gol subiti per club; se omesso li legge dal listone.
     """
-    subiti = dict(conceded) if conceded is not None else conceded_by_team()
+    subiti = dict(conceded) if conceded is not None else conceded_by_team(listone_path())
     return tuple(
         sorted(
             lineups,

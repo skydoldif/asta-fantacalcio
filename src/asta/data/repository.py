@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import threading
-from typing import Protocol
+from typing import Any, Protocol
 
 from asta.domain.events import Event, EventType
 
@@ -51,12 +51,27 @@ class AuctionRepository(Protocol):
         """Sostituisce il log (ripristino da backup)."""
         ...
 
+    def load_listone(self) -> dict[str, Any] | None:
+        """Il listone caricato dall'admin, o ``None`` se non ne ha mai caricati.
+
+        Sta nel database e non in un file committato perche' altrimenti per
+        cambiare listone servirebbero Python, un terminale e un push: la
+        strada che perde per via chiunque non programmi. Cosi' invece si
+        carica l'xlsx dall'app e basta.
+        """
+        ...
+
+    def save_listone(self, payload: dict[str, Any]) -> None:
+        """Sostituisce il listone. Ce n'e' uno solo per asta."""
+        ...
+
 
 class InMemoryRepository:
     """Repository in memoria, thread-safe. Usato dai test e in modalita demo."""
 
     def __init__(self, events: list[Event] | None = None) -> None:
         self._events: dict[int, Event] = {e.seq: e for e in (events or [])}
+        self._listone: dict[str, Any] | None = None
         self._lock = threading.Lock()
 
     def load(self) -> list[Event]:
@@ -89,6 +104,14 @@ class InMemoryRepository:
     def replace_all(self, events: list[Event]) -> None:
         with self._lock:
             self._events = {e.seq: e for e in events}
+
+    def load_listone(self) -> dict[str, Any] | None:
+        with self._lock:
+            return self._listone
+
+    def save_listone(self, payload: dict[str, Any]) -> None:
+        with self._lock:
+            self._listone = payload
 
 
 class PostgresRepository:
@@ -123,8 +146,45 @@ class PostgresRepository:
                 PRIMARY KEY (auction_id, seq)
             )
         """
+        # Il listone sta in una riga sola per asta: e' un documento, non
+        # qualcosa su cui si fanno query. Una tabella a parte e non una
+        # colonna degli eventi perche' non e' un evento dell'asta - si
+        # carica prima che l'asta cominci, e cambiarlo non e' un'operazione
+        # da annullare.
+        ddl_listone = """
+            CREATE TABLE IF NOT EXISTS auction_listone (
+                auction_id  TEXT        NOT NULL PRIMARY KEY,
+                payload     JSONB       NOT NULL,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """
         with self._engine.begin() as conn:  # type: ignore[attr-defined]
             conn.execute(self._sql(ddl))
+            conn.execute(self._sql(ddl_listone))
+
+    def load_listone(self) -> dict[str, Any] | None:
+        query = "SELECT payload FROM auction_listone WHERE auction_id = :aid"
+        with self._engine.connect() as conn:  # type: ignore[attr-defined]
+            riga = conn.execute(self._sql(query), {"aid": self._auction_id}).first()
+        if riga is None:
+            return None
+        payload = riga[0]
+        # psycopg restituisce gia' un dict dal JSONB; con altri driver puo'
+        # arrivare la stringa.
+        return json.loads(payload) if isinstance(payload, str) else dict(payload)
+
+    def save_listone(self, payload: dict[str, Any]) -> None:
+        query = """
+            INSERT INTO auction_listone (auction_id, payload)
+            VALUES (:aid, CAST(:payload AS JSONB))
+            ON CONFLICT (auction_id) DO UPDATE
+                SET payload = EXCLUDED.payload, created_at = NOW()
+        """
+        with self._engine.begin() as conn:  # type: ignore[attr-defined]
+            conn.execute(
+                self._sql(query),
+                {"aid": self._auction_id, "payload": json.dumps(payload, ensure_ascii=False)},
+            )
 
     def load(self) -> list[Event]:
         query = """

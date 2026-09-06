@@ -32,7 +32,7 @@ AUDIO_DIR = Path(__file__).resolve().parents[3] / "static" / "audio"
 SUPPORTED = (".mp3", ".m4a", ".wav", ".ogg", ".opus")
 
 #: Cartella -> titolo della sezione. In tutte e due la prima parola del nome
-#: del file e' chi parla ("allegri-buona-giornata", "carlo-passa-la-palla"), e
+#: del file e' chi parla ("allegri-buona-giornata", "gino-lava-la-gina"), e
 #: finisce sul pulsante come etichetta verde sopra la frase.
 SEZIONI: tuple[tuple[str, str], ...] = (
     ("calcio", "⚽ Calciatori e allenatori"),
@@ -83,7 +83,7 @@ def _frase(parole: list[str]) -> str:
     """Parole unite in una frase con la sola iniziale maiuscola.
 
     Non si tocca il resto: mettere l'iniziale a ogni parola trasformerebbe
-    "carlo passa la palla" in un titolo di giornale.
+    "gino lava gina" in un titolo di giornale.
     """
     testo = " ".join(parole)
     return testo[:1].upper() + testo[1:]

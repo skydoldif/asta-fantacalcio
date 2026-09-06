@@ -25,6 +25,7 @@ from asta.data.keepers import conceded_by_team
 from asta.domain.models import ROLE_LABEL, ROLE_ORDER, Role
 from asta.domain.reducer import AuctionState
 from asta.ui.crests import crest_url
+from asta.ui.wiring import listone_path
 
 #: Un colore per reparto, chiaro quanto basta per reggere il testo scuro sopra.
 ROLE_COLOR: dict[Role, str] = {
@@ -236,7 +237,7 @@ def club_breakdown_html(
     if state.settings is None or team_name not in state.teams:
         return ""
 
-    subiti = dict(conceded) if conceded is not None else conceded_by_team()
+    subiti = dict(conceded) if conceded is not None else conceded_by_team(listone_path())
     per_club = club_counts(state, team_name)
     # Ci sono tutti e venti i club, non solo quelli gia' pescati: i pallini
     # rossi dicono dove non si e' ancora preso nessuno, che e' un'informazione

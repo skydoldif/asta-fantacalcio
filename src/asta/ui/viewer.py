@@ -39,7 +39,7 @@ from asta.ui.keepers import (
     keepers_board,
     penalty_savers_board,
 )
-from asta.ui.wiring import viewer_state
+from asta.ui.wiring import listone_path, viewer_state
 
 _ATTESA = "L'asta non e' ancora stata configurata. Attendi l'amministratore."
 
@@ -196,7 +196,7 @@ def _formations_live() -> None:
     state = _stato()
     if state is None:
         return
-    formazioni = cached_lineups()
+    formazioni = cached_lineups(listone_path())
     if not formazioni:
         st.info(
             "Le probabili formazioni non sono state caricate: manca il file "
@@ -236,7 +236,7 @@ def _keepers_live() -> None:
     state = _stato()
     if state is None:
         return
-    gerarchie = cached_keepers()
+    gerarchie = cached_keepers(listone_path())
     if not gerarchie:
         st.info(
             "Le gerarchie in porta non sono state caricate: manca il file "
@@ -245,7 +245,7 @@ def _keepers_live() -> None:
         return
     keepers_board(gerarchie, state)
 
-    stagione = cached_stats_season()
+    stagione = cached_stats_season(listone_path())
     st.caption(
         f"🧤 **Pararigori** — chi ne ha parato almeno uno nella stagione "
         f"{stagione or 'precedente'}, con almeno {MIN_PARTITE_PARARIGORI} partite a voto."
@@ -281,7 +281,7 @@ def _listone_live() -> None:
         st.info("Nessun calciatore trovato con questi filtri.")
         return
 
-    stagione = cached_stats_season()
+    stagione = cached_stats_season(listone_path())
     if stagione:
         st.caption(
             f"Rendimenti della stagione {stagione}: le celle vuote sono di chi non ha "

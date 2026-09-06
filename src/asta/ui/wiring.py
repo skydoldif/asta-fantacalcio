@@ -10,13 +10,23 @@ e ricaricare la pagina e' la prima cosa che si fa quando la rete fa i capricci.
 
 from __future__ import annotations
 
+import json
+import tempfile
 import time
+from pathlib import Path
 from typing import Any
 
 import streamlit as st
 
 from asta import config
-from asta.data.players import load_listone
+from asta.data.keepers import cached_keeper_grid, cached_keepers
+from asta.data.players import (
+    cached_lineups,
+    cached_listone,
+    cached_stats_season,
+    cached_tiers,
+    load_listone,
+)
 from asta.data.repository import AuctionRepository, InMemoryRepository, PostgresRepository
 from asta.domain.events import Event
 from asta.domain.models import Listone
@@ -25,9 +35,84 @@ from asta.service import AuctionService
 
 
 @st.cache_resource(show_spinner=False)
+def _listone_scaricato(auction_id: str) -> str | None:
+    """Materializza su disco il listone caricato dall'admin, e ne da' il percorso.
+
+    ``None`` quando nel database non c'e' niente: si ricade sul JSON
+    committato nella repo, che e' come funzionava prima e come continua a
+    funzionare per chi il listone se lo genera da sé.
+
+    Perche' un file e non il dizionario in memoria: *tutti* i lettori del
+    listone - fasce, formazioni, gerarchie in porta, stagione delle
+    statistiche - prendono gia' un percorso facoltativo ed hanno la loro
+    memoizzazione su quello. Passando un percorso si cambia una riga per
+    lettore invece di riscriverli tutti, e le loro cache continuano a
+    funzionare senza saperne niente.
+
+    Il file sta nella cartella temporanea, che su Streamlit Cloud si azzera a
+    ogni riavvio: e' voluto. La copia buona e' quella nel database, e a ogni
+    riavvio si riscrive da li'.
+    """
+    payload = get_repository().load_listone()
+    if payload is None:
+        return None
+    percorso = Path(tempfile.gettempdir()) / f"listone-{auction_id}.json"
+    percorso.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    return str(percorso)
+
+
+def listone_path() -> str | None:
+    """Da dove leggere il listone: il database se ce l'ha, altrimenti il file.
+
+    Da passare a tutti i ``cached_*`` di :mod:`asta.data`, che con ``None``
+    ricadono sul JSON committato.
+    """
+    try:
+        return _listone_scaricato(config.auction_id())
+    except Exception:
+        # Database irraggiungibile all'avvio: meglio il listone committato
+        # (se c'e') che una pagina bianca.
+        return None
+
+
 def get_listone() -> Listone:
-    """Il listone, caricato una volta sola per processo."""
-    return load_listone()
+    """Il listone, caricato una volta sola per processo.
+
+    Se non c'e' ne' nel database ne' fra i file, torna un listone **vuoto**
+    invece di sollevare: chi apre l'app appena installata deve trovarci il
+    pannello per caricarlo, non un traceback. Con zero calciatori l'asta non
+    puo' partire comunque - le impostazioni si rifiutano di validare - quindi
+    non si nasconde nessun guaio, si dice solo la cosa giusta.
+    """
+    percorso = listone_path()
+    return cached_listone(percorso) if percorso else _listone_committato()
+
+
+@st.cache_resource(show_spinner=False)
+def _listone_committato() -> Listone:
+    try:
+        return load_listone()
+    except FileNotFoundError:
+        return Listone(players=())
+
+
+def dimentica_il_listone() -> None:
+    """Butta via ogni copia in cache del listone, dopo che ne e' stato caricato uno nuovo.
+
+    Sono cache diverse in posti diversi - una di Streamlit, quattro
+    ``lru_cache`` dentro ``asta.data`` - e vanno svuotate tutte insieme,
+    altrimenti si finisce con le fasce del listone vecchio sopra i
+    calciatori di quello nuovo.
+
+    Il servizio dell'admin **non** si tocca: li' dentro c'e' la coda delle
+    scritture in sospeso, e svuotarla perderebbe delle aggiudicazioni.
+    """
+    _listone_scaricato.clear()
+    _listone_committato.clear()
+    for memoizzata in (cached_listone, cached_tiers, cached_lineups, cached_stats_season):
+        memoizzata.cache_clear()
+    cached_keepers.cache_clear()
+    cached_keeper_grid.cache_clear()
 
 
 #: Secondi di attesa per aprire una connessione, prima di rinunciare.

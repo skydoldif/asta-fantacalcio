@@ -10,6 +10,7 @@ import hmac
 
 import pandas as pd
 import streamlit as st
+from scripts.build_players import XLSX_GLOB
 
 from asta import config
 from asta.data.players import listone_source
@@ -59,7 +60,14 @@ from asta.ui.components import (
     phase_banner,
     player_card,
 )
-from asta.ui.wiring import get_listone, get_service
+from asta.ui.upload import OBBLIGATORIO, costruisci, etichette, smista
+from asta.ui.wiring import (
+    dimentica_il_listone,
+    get_listone,
+    get_repository,
+    get_service,
+    listone_path,
+)
 
 #: Un pulsante Streamlit non si allunga in verticale da solo. La chiave passata
 #: a ``st.container`` diventa una classe ``st-key-<chiave>`` nel DOM, quindi si
@@ -429,18 +437,103 @@ def _listone_caricato(state: AuctionState) -> None:
     Se il file venisse rigenerato male (o non venisse rigenerato affatto) il
     posto per accorgersene e' qui, non a meta' asta.
     """
+    if not state.listone.players:
+        st.info(
+            "**Nessun listone caricato.** Trascina qui sotto il file delle quotazioni "
+            "scaricato da fantacalcio.it e l'asta e' pronta. Gli articoli con fasce, "
+            "formazioni e gerarchie in porta puoi aggiungerli adesso o mai."
+        )
+        return
     per_ruolo = " · ".join(f"{r.value} {len(state.listone.by_role(r))}" for r in ROLE_ORDER)
-    sorgente = listone_source()
+    sorgente = listone_source(listone_path())
     st.caption(
         f"📋 Listone: **{len(state.listone.players)}** calciatori ({per_ruolo})"
         + (f" — da `{sorgente}`" if sorgente else "")
     )
 
 
+#: Estensioni accettate dal caricamento: i due Excel ufficiali e gli articoli
+#: incollati in un file di testo.
+FORMATI_LISTONE = ["xlsx", "md", "txt"]
+
+
+def _carica_listone(state: AuctionState) -> None:
+    """Pannello per generare il listone dai file, senza Python ne' terminale.
+
+    Sta chiuso quando un listone c'e' gia': e' un'operazione che si fa una
+    volta a stagione, e aperta ruberebbe lo schermo alle impostazioni, che
+    invece si toccano ogni volta.
+    """
+    if state.has_activity:
+        return
+
+    with st.expander("📥 Carica il listone", expanded=not state.listone.players):
+        st.caption(
+            "Trascina qui i file e basta: non serve Python ne' il terminale. "
+            "Obbligatorio solo il listone ufficiale scaricato da fantacalcio.it "
+            f"(`{XLSX_GLOB}`); statistiche e articoli sono facoltativi e si "
+            "riconoscono dal nome del file."
+        )
+        caricati = st.file_uploader(
+            "File del listone",
+            type=FORMATI_LISTONE,
+            accept_multiple_files=True,
+            key="upload_listone",
+            label_visibility="collapsed",
+        )
+        if not caricati:
+            return
+
+        contenuti = {f.name: f.getvalue() for f in caricati}
+        scelti, ignorati = smista(list(contenuti))
+        nomi = etichette()
+        # Cosa succedera' *prima* di premere: un nome sbagliato si vede qui,
+        # non a meta' asta con la colonna delle fasce vuota.
+        st.dataframe(
+            pd.DataFrame(
+                [{"File": nome, "Riconosciuto come": nomi[dove]} for dove, nome in scelti.items()]
+                + [{"File": nome, "Riconosciuto come": "— ignorato"} for nome in ignorati]
+            ),
+            hide_index=True,
+            width="stretch",
+        )
+        if OBBLIGATORIO not in scelti:
+            st.error(f"Manca il listone ufficiale: serve un file `{XLSX_GLOB}`.")
+            return
+
+        if st.button("⚙️ Genera il listone", type="primary"):
+            _genera_listone(contenuti)
+
+
+def _genera_listone(contenuti: dict[str, bytes]) -> None:
+    """Costruisce il listone, lo salva e fa dimenticare quello vecchio."""
+    try:
+        with st.spinner("Leggo i file e aggancio i nomi..."):
+            payload, segnalazioni, _ = costruisci(contenuti)
+            get_repository().save_listone(payload)
+    except ValueError as exc:
+        st.error(str(exc))
+        return
+    except Exception as exc:
+        st.error(f"Non sono riuscito a leggere i file: {exc}")
+        return
+
+    dimentica_il_listone()
+    st.success(f"Listone caricato: {payload['count']} calciatori.")
+    if segnalazioni:
+        # Non sono errori: sono nomi che lo script non ha saputo agganciare
+        # con certezza, e li mostra perche' li giudichi tu.
+        with st.expander(f"{len(segnalazioni)} nomi da controllare"):
+            for riga in segnalazioni:
+                st.write(f"- {riga}")
+    st.rerun()
+
+
 def _settings_tab(service: AuctionService, state: AuctionState) -> None:
     """Configurazione dell'asta, modificabile finche' non si e' iniziato."""
     corrente = state.settings
     _listone_caricato(state)
+    _carica_listone(state)
     bloccata = state.has_activity
     if bloccata:
         st.warning(

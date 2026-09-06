@@ -38,6 +38,7 @@ from asta.domain.models import (
 from asta.domain.reducer import AuctionState
 from asta.domain.rules import role_progress
 from asta.ui.crests import crest_img, league_logo_url
+from asta.ui.wiring import listone_path
 
 #: Colore per ruolo, usato nelle etichette.
 ROLE_EMOJI: dict[Role, str] = {Role.P: "🧤", Role.D: "🛡️", Role.C: "⚙️", Role.A: "⚽"}
@@ -137,7 +138,7 @@ def tier_labels() -> dict[int, str]:
     """``{codice: sigla}``, costruita dalle graduatorie del listone."""
     return {
         tier_code(role, Tier(label=label, rank=rank)): label
-        for role, fasce in cached_tiers().items()
+        for role, fasce in cached_tiers(listone_path()).items()
         for rank, label in enumerate(fasce, start=1)
     }
 
@@ -685,7 +686,7 @@ def fasce_disponibili(role: Role | None) -> list[str]:
     esistono, ordinate per rango medio - cosi' F1 resta in cima e le fasce
     piu' basse in fondo anche mescolando i reparti.
     """
-    per_ruolo = cached_tiers()
+    per_ruolo = cached_tiers(listone_path())
     if role is not None:
         return list(per_ruolo.get(role, ()))
     ranghi: dict[str, list[int]] = {}

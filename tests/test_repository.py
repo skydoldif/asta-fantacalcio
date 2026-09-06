@@ -47,7 +47,21 @@ def postgres() -> Iterator[PostgresRepository]:
     repo.ensure_schema()
     yield repo
     repo.reset()
+    # ``reset`` cancella l'asta ma non il listone, ed e' voluto: azzerare
+    # l'asta non deve costringere a ricaricarlo. Qui pero' si butta via
+    # tutto, altrimenti ogni test lascerebbe la sua riga nel database.
+    _cancella_listone(repo)
     engine.dispose()
+
+
+def _cancella_listone(repo: PostgresRepository) -> None:
+    from sqlalchemy import text
+
+    with repo._engine.begin() as conn:  # type: ignore[attr-defined]
+        conn.execute(
+            text("DELETE FROM auction_listone WHERE auction_id = :aid"),
+            {"aid": repo._auction_id},
+        )
 
 
 @pytest.fixture(params=["memoria", "postgres"])
@@ -124,6 +138,60 @@ def test_le_aste_non_si_mescolano(postgres):
         assert altra.version() == (0, 0)
     finally:
         altra.reset()
+
+
+# ------------------------------------------------------------------ listone
+
+
+def test_senza_listone_caricato_si_ottiene_none(repo):
+    """Chi non ha ancora caricato niente ricade sul file committato."""
+    assert repo.load_listone() is None
+
+
+def test_il_listone_fa_il_giro_intero(repo):
+    payload = {
+        "source": "Quotazioni_Fantacalcio_Stagione_2026_27.xlsx",
+        "count": 2,
+        # Accenti e apostrofi: il JSONB ci passa attraverso, ma e' il genere
+        # di cosa che si scopre in produzione se non la si prova.
+        "players": [
+            {"id": 1, "role": "P", "name": "N'Dicka", "team": "Roma"},
+            {"id": 2, "role": "A", "name": "Gonzalez N.", "team": "Atalanta"},
+        ],
+        "tiers": {"A": ["F1", "F2"]},
+    }
+    repo.save_listone(payload)
+    assert repo.load_listone() == payload
+
+
+def test_il_listone_nuovo_sostituisce_il_vecchio(repo):
+    """Ce n'e' uno solo per asta: caricarne un altro non ne aggiunge una copia."""
+    repo.save_listone({"count": 1, "players": [{"id": 1}]})
+    repo.save_listone({"count": 2, "players": [{"id": 1}, {"id": 2}]})
+    caricato = repo.load_listone()
+    assert caricato is not None
+    assert caricato["count"] == 2
+
+
+def test_il_listone_non_e_un_evento_dell_asta(repo):
+    """Caricarlo non tocca il log, e azzerare l'asta non lo porta via."""
+    repo.save_listone({"count": 1, "players": [{"id": 1}]})
+    repo.append(evento(1))
+    assert len(repo.load()) == 1
+
+    repo.reset()
+    assert repo.load() == []
+    assert repo.load_listone() is not None, "azzerando l'asta il listone resta"
+
+
+def test_il_listone_e_di_una_sola_asta(postgres):
+    altra = PostgresRepository(postgres._engine, auction_id=f"test-{uuid.uuid4().hex[:8]}")
+    postgres.save_listone({"count": 1, "players": [{"id": 1}]})
+    try:
+        assert altra.load_listone() is None
+    finally:
+        altra.reset()
+        _cancella_listone(altra)
 
 
 def test_ensure_schema_e_idempotente(postgres):

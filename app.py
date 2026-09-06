@@ -17,10 +17,14 @@ import sys
 from pathlib import Path
 
 # I moduli vivono in src/: cosi' l'app parte senza doversi installare come
-# pacchetto, anche su Streamlit Community Cloud.
-SRC = Path(__file__).resolve().parent / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
+# pacchetto, anche su Streamlit Community Cloud. La radice serve a sua volta,
+# perche' il caricamento del listone importa ``scripts.build_players``: di
+# norma Streamlit ce la mette da sola, ma dipende da come viene avviata e
+# scoprirlo in produzione costerebbe caro.
+RADICE = Path(__file__).resolve().parent
+for cartella in (RADICE / "src", RADICE):
+    if str(cartella) not in sys.path:
+        sys.path.insert(0, str(cartella))
 
 import streamlit as st  # noqa: E402
 

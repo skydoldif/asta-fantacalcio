@@ -2,9 +2,11 @@
 
 App per condurre dal vivo l'asta del fantacalcio (modalità **Classic**) con gli amici.
 
-> **Qui c'è il codice, non i dati.** Listone, quotazioni, statistiche, articoli, stemmi e
-> audio non sono miei da ridistribuire: te li procuri tu, ed è mezz'ora di lavoro la prima
-> volta. Comincia da [I dati che devi procurarti](#i-dati-che-devi-procurarti).
+> **Nuovo qui?** Vai al **[QUICKSTART](QUICKSTART.md)**: sono venti minuti e non serve saper
+> programmare. Questo README è il manuale completo, si legge dopo.
+>
+> Nella repo c'è il codice, non i dati: listone, statistiche e articoli te li procuri tu e li
+> **carichi dall'app**. Vedi [I dati che devi procurarti](#i-dati-che-devi-procurarti).
 
 I rilanci si fanno a voce, come sempre. L'app fa da **registro autoritativo**: dice chi è
 il calciatore in asta, registra l'aggiudicazione, aggiorna crediti e listone e mostra tutto
@@ -42,7 +44,7 @@ diverso da pagina a pagina.
 - [Export per fantacalcio.it](#export-per-fantacalcioit)
 - [Struttura del progetto](#struttura-del-progetto)
 - [Sviluppo e test](#sviluppo-e-test)
-- [Aggiornare il listone](#aggiornare-il-listone)
+- [Aggiornare il listone](#aggiornare-il-listone) — dall'app o da terminale
 - [Problemi frequenti](#problemi-frequenti)
 - [Licenza, e di chi sono i dati](#licenza-e-di-chi-sono-i-dati)
 
@@ -52,53 +54,34 @@ diverso da pagina a pagina.
 
 Nella repo non c'è nessun dato di gioco, e non è una dimenticanza: il listone e le
 statistiche sono di fantacalcio.it, le fasce d'asta e le gerarchie in porta vengono dagli
-articoli di chi le ha scritte, gli stemmi sono marchi dei club, l'audio è di chi l'ha
-registrato. Nessuna di queste cose è mia da regalare. Il codice sì.
+articoli di chi le ha scritte, gli stemmi sono marchi dei club. Nessuna di queste cose è mia
+da regalare. Il codice sì.
 
-| Cosa | Dove va | Da dove arriva |
-|---|---|---|
-| **`Quotazioni_Fantacalcio_Stagione_AAAA_AA.xlsx`** | `data/raw/` | area download di [fantacalcio.it](https://www.fantacalcio.it), con il tuo account |
-| `Statistiche_Fantacalcio_Stagione_AAAA_AA.xlsx` | `data/raw/` | stessa area (più il file *aggiuntive portieri*, se lo vuoi) |
-| `attaccanti.md` · `centrocampisti.md` · `difensori.md` | `data/raw/` | gli articoli sulle **fasce d'asta**, incollati come testo. Io usavo quelli di [SOS Fanta](https://www.sosfanta.com) |
-| `probabili_formazioni.md` | `data/raw/` | l'articolo delle probabili formazioni |
-| `portieri.md` | `data/raw/` | l'articolo sulle gerarchie in porta |
-| `infortunati.md` · `rigoristi_*.md` · `corner_e_punizioni_*.md` | `data/raw/` | i rispettivi articoli |
-| `griglia_portieri_*.json` | `data/` | si trascrive a mano da un'immagine, vedi [La griglia delle coppie](#la-griglia-delle-coppie) |
-| stemmi delle squadre | `static/loghi/` | vedi [`static/loghi/README.md`](static/loghi/README.md) |
-| audio della Soundbar | `static/audio/` | quello che ti pare, vedi [`static/audio/README.md`](static/audio/README.md) |
+**Si caricano dall'app**, in *Gestione asta → Impostazioni → Carica il listone*: trascini i
+file e basta. Niente Python, niente terminale, niente commit — restano nel tuo database e non
+passano mai da GitHub.
+
+| Cosa | Da dove arriva |
+|---|---|
+| **`Quotazioni_Fantacalcio_Stagione_AAAA_AA.xlsx`** | area download di [fantacalcio.it](https://www.fantacalcio.it), con il tuo account |
+| `Statistiche_Fantacalcio_Stagione_AAAA_AA.xlsx` | stessa area (c'è anche la versione *aggiuntive portieri*: se le carichi entrambe vince quella, che ha i gol subiti) |
+| `difensori.md` · `centrocampisti.md` · `attaccanti.md` | gli articoli sulle **fasce d'asta**, incollati in un file di testo. Io usavo quelli di [SOS Fanta](https://www.sosfanta.com) |
+| `probabili_formazioni.md` | l'articolo delle probabili formazioni |
+| `portieri.md` | l'articolo sulle gerarchie in porta |
+| `infortunati.md` · `rigoristi_*.md` · `corner_e_punizioni_*.md` | i rispettivi articoli |
 
 **Solo il primo è obbligatorio.** Tutto il resto è in più, e l'app è fatta per reggerne
 l'assenza: manca un file, sparisce quella colonna o quella pagina, e il resto funziona.
-Senza il listone invece non parte, e te lo dice con l'errore giusto.
 
-Il formato che ogni file deve avere è descritto in
-[Aggiornare il listone](#aggiornare-il-listone), sezione per sezione: sono file di testo
-normale in cui si incolla l'articolo, e lo script si arrangia a leggerli — nessuno ti chiede
-di riordinare niente a mano.
+I file si riconoscono **dal nome**, e prima di generare il pannello ti scrive cosa ha
+riconosciuto e cosa ha ignorato: un nome sbagliato si vede lì, non a metà asta. Il formato
+che ogni articolo deve avere è descritto in [Aggiornare il listone](#aggiornare-il-listone),
+sezione per sezione — sono file di testo in cui incolli l'articolo, e lo script si arrangia.
 
-> Quello che scarichi e quello che incolli resta tuo e sul tuo computer: il `.gitignore`
-> tiene fuori dai commit `data/` e `static/` per costruzione, non per buona volontà. Se
-> pubblichi un fork, non pubblichi roba di altri.
-
-### Per il deploy però il listone deve salire
-
-Streamlit Cloud fa girare l'app dalla **tua repo su GitHub**: se il JSON del listone non è
-committato, in cloud non c'è. Ma il `.gitignore` lo tiene fuori apposta. Quindi, quando sei
-pronto a deployare:
-
-```bash
-git add -f data/players_2026_27.json
-```
-
-e lo stesso per quello che vuoi in cloud — `data/griglia_portieri_*.json`, `static/loghi/`,
-`static/audio/`. Il `-f` serve una volta sola per file: da lì in poi git li segue.
-
-**A quel punto tieni la tua repo privata.** Quel JSON contiene le quotazioni e le statistiche
-di fantacalcio.it e le fasce ricavate dagli articoli: sul tuo computer sono tuoi, in una repo
-pubblica diventano una ridistribuzione. Non è un problema: Streamlit Cloud deploya
-benissimo da una repo privata, e l'**app** resta pubblica lo stesso — è una spunta a parte,
-spiegata più sotto. Gli xlsx e gli articoli non servono in cloud: li legge solo lo script,
-sul tuo computer.
+Restano due cose facoltative che l'app non sa ancora caricare da sola, e che vanno messe nella
+repo se le vuoi: gli **stemmi** in `static/loghi/` (vedi il suo
+[README](static/loghi/README.md)) e gli **audio** della Soundbar in `static/audio/` (idem).
+Senza, restano il nome scritto e nessuna Soundbar.
 
 ## Come funziona
 
@@ -194,9 +177,11 @@ pescato, e la fila si legge uguale nelle due pagine.
 
 ## Avvio in locale
 
-Serve Python 3.11+, e il listone: se non l'hai ancora,
-[procuratelo](#i-dati-che-devi-procurarti) e genera il JSON con
-`python scripts/build_players.py`.
+Serve solo per sviluppare: **per usare l'app non serve installare niente**, vedi il
+[QUICKSTART](QUICKSTART.md).
+
+Serve Python 3.11+. Non ce l'hai e non vuoi installarlo? Da GitHub, *Code → Codespaces →
+Create*: apre nel browser un VS Code già pronto, con Python e le dipendenze installate.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
@@ -217,9 +202,7 @@ Servono due account gratuiti: **Supabase** (database) e **Streamlit Community Cl
 ### 1. Database
 
 1. Crea un progetto su [supabase.com](https://supabase.com).
-2. Nel *SQL Editor* incolla ed esegui il contenuto di [`sql/schema.sql`](sql/schema.sql).
-   (L'app crea comunque la tabella da sola al primo avvio.)
-3. Copia la stringa di connessione: pulsante verde **Connect**, in alto nella pagina del
+2. Copia la stringa di connessione: pulsante verde **Connect**, in alto nella pagina del
    progetto → riquadro **Transaction pooler** (porta `6543`). Ha questa forma:
 
    ```
@@ -240,7 +223,7 @@ Servono due account gratuiti: **Supabase** (database) e **Streamlit Community Cl
    > lettere e numeri (24 caratteri sono già abbondanti), oppure codificarla con
    > `python scripts/check_db.py --encode` e incollare quella.
 
-4. Metti la stringa in `.streamlit/secrets.toml` e **verifica prima della serata**:
+3. Metti la stringa in `.streamlit/secrets.toml` e **verifica prima della serata**:
 
    ```bash
    python scripts/check_db.py
@@ -452,20 +435,6 @@ sopravvivrebbe a un cambio di interfaccia.
 .venv/bin/ruff check . && .venv/bin/mypy
 ```
 
-**Un centinaio di test si saltano finché non hai i dati**, e ognuno dice quale gli manca.
-Non è un difetto della suite: quelli che restano — il log degli eventi, le regole, l'undo,
-l'export, il repository, cioè il motore che conduce l'asta davvero — girano su un listone
-finto costruito nei test e non dipendono da nessun dato reale. Sono la maggioranza, ed è
-voluto: il pezzo delicato non ha bisogno del listone vero per essere verificato.
-
-Quelli che si saltano verificano **i dati**: che il listone committato coincida con l'xlsx
-ufficiale, che ogni squadra abbia un titolare in porta, che la griglia trascritta a mano sia
-simmetrica. Appena metti i tuoi file in `data/raw/` e lanci `build_players.py`, si accendono
-da soli e ti dicono se hai sbagliato qualcosa.
-
-Anche i test del `PostgresRepository` si saltano senza un database: si accendono impostando
-`ASTA_TEST_DATABASE_URL` (in CI c'è un container Postgres apposta).
-
 Cosa coprono i test:
 
 | File | Cosa verifica |
@@ -493,7 +462,26 @@ Cosa coprono i test:
 
 ## Aggiornare il listone
 
-Quando esce un nuovo listone ufficiale servono **due mosse**:
+Ci sono due strade, e danno **lo stesso identico listone** — c'è un test che lo verifica.
+
+### Dall'app, senza toccare niente
+
+*Gestione asta → Impostazioni → **Carica il listone***: trascini i file e basta. Niente
+Python, niente terminale, niente commit: il listone finisce nel database, e da lì l'app lo
+riprende a ogni riavvio. È la strada da usare se stai solo aggiornando i dati.
+
+I file si riconoscono **dal nome** — gli stessi nomi che userebbe lo script — e prima di
+generare il pannello scrive cosa ha riconosciuto e cosa ha ignorato, così un nome sbagliato
+si vede subito invece che a metà asta con la colonna delle fasce vuota. L'unico obbligatorio
+è `Quotazioni_*.xlsx`; tutto il resto è facoltativo.
+
+> Il listone caricato dall'app **vince** su quello committato in `data/`. Per tornare al file
+> basta azzerare la riga dalla tabella `auction_listone` del database.
+
+### Dalla riga di comando, quando vuoi vedere le differenze
+
+Lo script mostra **cosa cambia** rispetto al listone attuale — nuovi, usciti, quotazioni,
+trasferimenti — e ha `--check` per la checklist della serata. Serve Python.
 
 1. copia l'xlsx scaricato da fantacalcio.it in `data/raw/` (sia le *Quotazioni* sia, se le
    vuoi, le *Statistiche* della stagione precedente);
@@ -505,9 +493,7 @@ python scripts/build_players.py
 
 Trova da solo il listone più recente in `data/raw/`, stampa **cosa cambia** rispetto al JSON
 attuale (nuovi, usciti, quotazioni e trasferimenti), scrive `data/players_2026_27.json` e
-ricorda il comando per committarlo (la prima volta serve `git add -f`, vedi
-[Per il deploy il listone deve salire](#per-il-deploy-però-il-listone-deve-salire)). Poi
-`git push`: Streamlit Cloud si aggiorna da solo.
+ricorda il comando per committarlo. Poi `git push`: Streamlit Cloud si aggiorna da solo.
 
 | Comando | A cosa serve |
 |---|---|
@@ -748,7 +734,7 @@ I **dati** no, e non sono nella repo apposta. Le quotazioni e le statistiche son
 condizioni. Le fasce d'asta, le probabili formazioni, le gerarchie in porta, gli infortunati
 e i rigoristi si ricavano da articoli editoriali — nel mio caso quelli di
 [SOS Fanta](https://www.sosfanta.com) — che restano di chi li ha scritti: l'app li legge dal
-tuo computer, non li ridistribuisce. Gli stemmi dei club sono marchi dei rispettivi
-proprietari.
+tuo computer e li tiene nel tuo database, non li ridistribuisce. Gli stemmi dei club sono
+marchi dei rispettivi proprietari.
 
 Questo progetto non è affiliato né a fantacalcio.it né a SOS Fanta né alla Lega Serie A.
