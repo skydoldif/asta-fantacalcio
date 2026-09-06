@@ -104,8 +104,10 @@ def dimentica_il_listone() -> None:
     altrimenti si finisce con le fasce del listone vecchio sopra i
     calciatori di quello nuovo.
 
-    Il servizio dell'admin **non** si tocca: li' dentro c'e' la coda delle
-    scritture in sospeso, e svuotarla perderebbe delle aggiudicazioni.
+    Il servizio dell'admin non si tocca: dentro ha la coda delle scritture in
+    sospeso, e buttarla via perderebbe delle aggiudicazioni. Ma il listone se
+    lo tiene in pancia, quindi chi carica un listone nuovo deve usare
+    :func:`aggiorna_il_listone`, non questa.
     """
     _listone_scaricato.clear()
     _listone_committato.clear()
@@ -113,6 +115,21 @@ def dimentica_il_listone() -> None:
         memoizzata.cache_clear()
     cached_keepers.cache_clear()
     cached_keeper_grid.cache_clear()
+
+
+def aggiorna_il_listone(service: AuctionService) -> None:
+    """Da usare dopo che e' stato caricato un listone nuovo.
+
+    Svuota le cache **e** rimette il listone nuovo dentro al servizio
+    dell'admin, che se lo tiene in pancia da quando e' nato e vive in una
+    cache che non si puo' ricostruire senza perdere la coda delle scritture.
+
+    Senza questa seconda parte il caricamento andava a buon fine, il database
+    aveva il listone nuovo, e la pagina continuava a mostrare quello vecchio:
+    da fuori sembrava che il pulsante non facesse niente.
+    """
+    dimentica_il_listone()
+    service.listone = get_listone()
 
 
 #: Secondi di attesa per aprire una connessione, prima di rinunciare.

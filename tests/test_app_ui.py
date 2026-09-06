@@ -9,6 +9,7 @@ non vedono.
 from __future__ import annotations
 
 import re
+from unittest import mock
 
 import pytest
 import streamlit as st
@@ -946,3 +947,126 @@ def test_una_fascia_che_non_esiste_piu_non_blocca_il_listone(admin):
 
     assert not listone.exception
     assert listone.selectbox(key="viewer_tier").value == "Tutte"
+
+
+# ------------------------------------------- listone caricato dall'app
+
+
+def test_senza_listone_l_app_non_si_schianta_e_dice_cosa_fare():
+    """Chi apre l'app appena installata deve trovare il pannello, non un traceback."""
+    from asta.ui import wiring
+
+    wiring.dimentica_il_listone()
+    with mock.patch.object(wiring, "load_listone", side_effect=FileNotFoundError("niente")):
+        at = AppTest.from_file(ADMIN_APP, default_timeout=60)
+        at.run()
+
+    assert not at.exception
+    assert any("Nessun listone caricato" in i.value for i in at.info)
+    wiring.dimentica_il_listone()
+
+
+@serve_il_listone
+def test_il_listone_caricato_prende_il_posto_di_quello_nel_file(shared_repo):
+    """Tutta la catena tranne il widget: database -> cache -> pagina.
+
+    Il file caricato non passa da qui (ne' l'``AppTest`` ne' il browser
+    sanno caricare file), ma quello che genera si': ``costruisci`` e'
+    verificato in ``test_upload.py``, e da li' in poi comanda questo.
+    """
+    from asta.ui.wiring import dimentica_il_listone
+
+    finto = {
+        "source": "Quotazioni_finte.xlsx",
+        "count": 2,
+        "players": [
+            {"id": 1, "role": "P", "name": "Uno", "team": "Ajax", "quotation": 1, "fvm": 1},
+            {"id": 2, "role": "A", "name": "Due", "team": "Bayern", "quotation": 1, "fvm": 1},
+        ],
+    }
+    shared_repo.save_listone(finto)
+    dimentica_il_listone()
+
+    at = AppTest.from_file(ADMIN_APP, default_timeout=60)
+    at.run()
+    assert not at.exception
+
+    didascalie = " ".join(c.value for c in at.caption)
+    assert "**2** calciatori" in didascalie, "mostra ancora il listone del file"
+    assert "Quotazioni_finte.xlsx" in didascalie
+
+    dimentica_il_listone()
+
+
+@serve_il_listone
+def test_dimenticare_il_listone_non_tocca_la_coda_dell_admin(shared_repo):
+    """Svuotare le cache non deve portarsi via le aggiudicazioni in sospeso."""
+    from asta.ui.wiring import dimentica_il_listone
+
+    _asta_avviata(admin_app := AppTest.from_file(ADMIN_APP, default_timeout=60).run())
+    assert admin_app is not None
+    servizio = _servizio()
+    quanti = len(servizio.events)
+
+    dimentica_il_listone()
+
+    assert _servizio() is servizio, "il servizio dell'admin e' stato ricostruito"
+    assert len(_servizio().events) == quanti
+
+
+@serve_il_listone
+def test_il_listone_appena_caricato_si_vede_senza_riavviare_l_app(shared_repo):
+    """Il difetto che rendeva il pulsante "Genera il listone" apparentemente morto.
+
+    Il servizio dell'admin vive nella cache di processo e si tiene *dentro* il
+    listone di quando e' nato. Svuotare le cache del listone non lo toccava:
+    il caricamento andava a buon fine, il database aveva il listone nuovo, e
+    la pagina continuava a mostrare quello vecchio. Da fuori sembrava che il
+    pulsante non facesse niente.
+    """
+    from asta.ui.wiring import aggiorna_il_listone
+
+    at = AppTest.from_file(ADMIN_APP, default_timeout=60)
+    at.run()
+    prima = len(_servizio().state().listone.players)
+
+    shared_repo.save_listone(
+        {
+            "source": "Quotazioni_nuove.xlsx",
+            "count": 2,
+            "players": [
+                {"id": 1, "role": "P", "name": "Uno", "team": "Ajax", "quotation": 1, "fvm": 1},
+                {"id": 2, "role": "A", "name": "Due", "team": "Bayern", "quotation": 1, "fvm": 1},
+            ],
+        }
+    )
+    # Quello che fa il pulsante "Genera il listone" dopo aver salvato.
+    aggiorna_il_listone(_servizio())
+    at.run()
+
+    assert not at.exception
+    assert prima != 2, "la prova non direbbe niente se il listone fosse gia' di due"
+    assert len(_servizio().state().listone.players) == 2, "il servizio ha ancora il listone vecchio"
+    assert "**2** calciatori" in " ".join(c.value for c in at.caption)
+
+
+@serve_il_listone
+def test_l_esito_del_caricamento_sopravvive_al_rerun(shared_repo):
+    """Il rerun butta via quello che si e' appena disegnato.
+
+    Scrivere il "listone caricato" prima di ``st.rerun()`` vuol dire non
+    mostrarlo mai: da fuori il pulsante sembra non fare niente. L'esito
+    passa dalla sessione e si disegna al giro dopo.
+    """
+    from asta.ui.admin import ESITO_CARICAMENTO
+
+    at = AppTest.from_file(ADMIN_APP, default_timeout=60)
+    at.run()
+    at.session_state[ESITO_CARICAMENTO] = {"count": 533, "segnalazioni": ["Tizio (Ajax)"]}
+    at = at.run()
+
+    assert not at.exception
+    assert any("533 calciatori" in s.value for s in at.success)
+    assert any("1 nomi da controllare" in e.label for e in at.expander)
+    # Mostrato una volta sola: al giro dopo non deve ricomparire.
+    assert not at.run().success

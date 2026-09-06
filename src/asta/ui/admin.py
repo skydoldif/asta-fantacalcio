@@ -7,6 +7,7 @@ quattro schede: conduzione dell'asta, impostazioni, rose e correzioni, export.
 from __future__ import annotations
 
 import hmac
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -62,7 +63,7 @@ from asta.ui.components import (
 )
 from asta.ui.upload import OBBLIGATORIO, costruisci, etichette, smista
 from asta.ui.wiring import (
-    dimentica_il_listone,
+    aggiorna_il_listone,
     get_listone,
     get_repository,
     get_service,
@@ -445,7 +446,10 @@ def _listone_caricato(state: AuctionState) -> None:
         )
         return
     per_ruolo = " · ".join(f"{r.value} {len(state.listone.by_role(r))}" for r in ROLE_ORDER)
-    sorgente = listone_source(listone_path())
+    # ``listone_path`` da' una stringa (e' la chiave delle memoizzazioni);
+    # ``listone_source`` vuole un Path.
+    percorso = listone_path()
+    sorgente = listone_source(Path(percorso) if percorso else None)
     st.caption(
         f"📋 Listone: **{len(state.listone.players)}** calciatori ({per_ruolo})"
         + (f" — da `{sorgente}`" if sorgente else "")
@@ -456,8 +460,12 @@ def _listone_caricato(state: AuctionState) -> None:
 #: incollati in un file di testo.
 FORMATI_LISTONE = ["xlsx", "md", "txt"]
 
+#: Chiave di sessione con l'esito dell'ultimo caricamento, da mostrare dopo
+#: il rerun che altrimenti se lo porterebbe via.
+ESITO_CARICAMENTO = "esito_caricamento_listone"
 
-def _carica_listone(state: AuctionState) -> None:
+
+def _carica_listone(service: AuctionService, state: AuctionState) -> None:
     """Pannello per generare il listone dai file, senza Python ne' terminale.
 
     Sta chiuso quando un listone c'e' gia': e' un'operazione che si fa una
@@ -467,7 +475,10 @@ def _carica_listone(state: AuctionState) -> None:
     if state.has_activity:
         return
 
-    with st.expander("📥 Carica il listone", expanded=not state.listone.players):
+    esito = st.session_state.pop(ESITO_CARICAMENTO, None)
+    with st.expander("📥 Carica il listone", expanded=not state.listone.players or bool(esito)):
+        if esito is not None:
+            _mostra_esito(esito)
         st.caption(
             "Trascina qui i file e basta: non serve Python ne' il terminale. "
             "Obbligatorio solo il listone ufficiale scaricato da fantacalcio.it "
@@ -502,10 +513,10 @@ def _carica_listone(state: AuctionState) -> None:
             return
 
         if st.button("⚙️ Genera il listone", type="primary"):
-            _genera_listone(contenuti)
+            _genera_listone(service, contenuti)
 
 
-def _genera_listone(contenuti: dict[str, bytes]) -> None:
+def _genera_listone(service: AuctionService, contenuti: dict[str, bytes]) -> None:
     """Costruisce il listone, lo salva e fa dimenticare quello vecchio."""
     try:
         with st.spinner("Leggo i file e aggancio i nomi..."):
@@ -518,22 +529,36 @@ def _genera_listone(contenuti: dict[str, bytes]) -> None:
         st.error(f"Non sono riuscito a leggere i file: {exc}")
         return
 
-    dimentica_il_listone()
-    st.success(f"Listone caricato: {payload['count']} calciatori.")
+    aggiorna_il_listone(service)
+    # L'esito passa dalla sessione perche' subito dopo c'e' un rerun, e il
+    # rerun butta via tutto quello che si e' appena disegnato: scriverlo qui
+    # vorrebbe dire non mostrarlo mai. Il rerun serve lo stesso, altrimenti
+    # la pagina resterebbe quella di prima del caricamento.
+    st.session_state[ESITO_CARICAMENTO] = {
+        "count": payload["count"],
+        "segnalazioni": segnalazioni,
+    }
+    st.rerun()
+
+
+def _mostra_esito(esito: dict[str, object]) -> None:
+    """Com'e' andato il caricamento, dopo il rerun che lo ha fatto sparire."""
+    st.success(f"✅ Listone caricato: {esito['count']} calciatori.")
+    segnalazioni = esito["segnalazioni"]
+    assert isinstance(segnalazioni, list)
     if segnalazioni:
         # Non sono errori: sono nomi che lo script non ha saputo agganciare
         # con certezza, e li mostra perche' li giudichi tu.
-        with st.expander(f"{len(segnalazioni)} nomi da controllare"):
+        with st.expander(f"⚠️ {len(segnalazioni)} nomi da controllare"):
             for riga in segnalazioni:
                 st.write(f"- {riga}")
-    st.rerun()
 
 
 def _settings_tab(service: AuctionService, state: AuctionState) -> None:
     """Configurazione dell'asta, modificabile finche' non si e' iniziato."""
     corrente = state.settings
     _listone_caricato(state)
-    _carica_listone(state)
+    _carica_listone(service, state)
     bloccata = state.has_activity
     if bloccata:
         st.warning(
