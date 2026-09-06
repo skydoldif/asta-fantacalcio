@@ -1,0 +1,42 @@
+[project]
+name = "fantasta"
+version = "1.0.0"
+description = "Gestione live dell'asta del fantacalcio (modalita Classic)"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit>=1.50",
+    "SQLAlchemy>=2.0",
+    "psycopg[binary]>=3.1",
+    "pandas>=2.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6", "mypy>=1.11"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# "." serve a importare scripts/build_players.py dai test.
+pythonpath = ["src", "."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["asta.domain"]
+mypy_path = "src"
+strict = true

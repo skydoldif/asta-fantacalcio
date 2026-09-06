@@ -1,0 +1,14 @@
+[theme]
+base = "dark"
+primaryColor = "#00c853"
+
+[server]
+# L'asta gira su rete dati: nessun upload di file pesanti richiesto.
+maxUploadSize = 5
+# Serve static/ sotto /app/static/: e' li' che stanno gli stemmi delle
+# squadre, cosi' il browser li mette in cache invece di riscaricarli a
+# ogni aggiornamento automatico delle pagine.
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false

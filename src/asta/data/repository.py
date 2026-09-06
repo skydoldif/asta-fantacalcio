@@ -1,0 +1,220 @@
+"""Persistenza del log eventi.
+
+Due implementazioni della stessa interfaccia:
+
+* :class:`PostgresRepository` per l'asta vera (stato condiviso fra admin e
+  spettatori);
+* :class:`InMemoryRepository` per i test e per provare l'app senza database.
+"""
+
+from __future__ import annotations
+
+import json
+import threading
+from typing import Protocol
+
+from asta.domain.events import Event, EventType
+
+#: Identificativo dell'asta in corso. Cambiarlo equivale a partire da zero
+#: mantenendo lo storico della precedente.
+DEFAULT_AUCTION_ID = "main"
+
+
+class AuctionRepository(Protocol):
+    """Interfaccia di persistenza del log eventi."""
+
+    def load(self) -> list[Event]:
+        """Tutti gli eventi dell'asta, ordinati per ``seq``."""
+        ...
+
+    def append(self, event: Event) -> None:
+        """Aggiunge un evento. Se ``seq`` esiste gia', l'operazione e' innocua."""
+        ...
+
+    def set_active(self, seq: int, active: bool) -> None:
+        """Attiva/disattiva un evento (undo e redo)."""
+        ...
+
+    def version(self) -> tuple[int, int]:
+        """Firma leggera dello stato: ``(seq massimo, eventi attivi)``.
+
+        La vista utente la interroga ogni pochi secondi e ricarica il log solo
+        quando cambia.
+        """
+        ...
+
+    def reset(self) -> None:
+        """Cancella l'asta corrente."""
+        ...
+
+    def replace_all(self, events: list[Event]) -> None:
+        """Sostituisce il log (ripristino da backup)."""
+        ...
+
+
+class InMemoryRepository:
+    """Repository in memoria, thread-safe. Usato dai test e in modalita demo."""
+
+    def __init__(self, events: list[Event] | None = None) -> None:
+        self._events: dict[int, Event] = {e.seq: e for e in (events or [])}
+        self._lock = threading.Lock()
+
+    def load(self) -> list[Event]:
+        with self._lock:
+            return sorted(self._events.values(), key=lambda e: e.seq)
+
+    def append(self, event: Event) -> None:
+        with self._lock:
+            self._events.setdefault(event.seq, event)
+
+    def set_active(self, seq: int, active: bool) -> None:
+        with self._lock:
+            existing = self._events.get(seq)
+            if existing is not None:
+                self._events[seq] = existing.reactivated() if active else existing.deactivated()
+
+    def version(self) -> tuple[int, int]:
+        with self._lock:
+            if not self._events:
+                return (0, 0)
+            return (
+                max(self._events),
+                sum(1 for e in self._events.values() if e.active),
+            )
+
+    def reset(self) -> None:
+        with self._lock:
+            self._events.clear()
+
+    def replace_all(self, events: list[Event]) -> None:
+        with self._lock:
+            self._events = {e.seq: e for e in events}
+
+
+class PostgresRepository:
+    """Repository su Postgres (Supabase, Neon, o qualsiasi altro).
+
+    Args:
+        engine: engine SQLAlchemy gia' configurato.
+        auction_id: consente piu' aste sullo stesso database.
+    """
+
+    def __init__(self, engine: object, auction_id: str = DEFAULT_AUCTION_ID) -> None:
+        self._engine = engine
+        self._auction_id = auction_id
+
+    # L'import di SQLAlchemy resta locale ai metodi cosi' il modulo si puo'
+    # importare (e testare) anche dove SQLAlchemy non e' installato.
+    def _sql(self, statement: str):  # type: ignore[no-untyped-def]
+        from sqlalchemy import text
+
+        return text(statement)
+
+    def ensure_schema(self) -> None:
+        """Crea la tabella se manca. Idempotente."""
+        ddl = """
+            CREATE TABLE IF NOT EXISTS auction_event (
+                auction_id  TEXT        NOT NULL,
+                seq         INTEGER     NOT NULL,
+                type        TEXT        NOT NULL,
+                payload     JSONB       NOT NULL DEFAULT '{}'::jsonb,
+                active      BOOLEAN     NOT NULL DEFAULT TRUE,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                PRIMARY KEY (auction_id, seq)
+            )
+        """
+        with self._engine.begin() as conn:  # type: ignore[attr-defined]
+            conn.execute(self._sql(ddl))
+
+    def load(self) -> list[Event]:
+        query = """
+            SELECT seq, type, payload, active, created_at
+            FROM auction_event WHERE auction_id = :aid ORDER BY seq
+        """
+        with self._engine.connect() as conn:  # type: ignore[attr-defined]
+            rows = conn.execute(self._sql(query), {"aid": self._auction_id}).fetchall()
+        return [
+            Event(
+                seq=int(r[0]),
+                type=EventType(r[1]),
+                payload=r[2] if isinstance(r[2], dict) else json.loads(r[2] or "{}"),
+                active=bool(r[3]),
+                created_at=r[4],
+            )
+            for r in rows
+        ]
+
+    def append(self, event: Event) -> None:
+        query = """
+            INSERT INTO auction_event (auction_id, seq, type, payload, active, created_at)
+            VALUES (:aid, :seq, :type, CAST(:payload AS JSONB), :active, :created_at)
+            ON CONFLICT (auction_id, seq) DO NOTHING
+        """
+        with self._engine.begin() as conn:  # type: ignore[attr-defined]
+            conn.execute(
+                self._sql(query),
+                {
+                    "aid": self._auction_id,
+                    "seq": event.seq,
+                    "type": event.type.value,
+                    "payload": json.dumps(event.payload, ensure_ascii=False),
+                    "active": event.active,
+                    "created_at": event.created_at,
+                },
+            )
+
+    def set_active(self, seq: int, active: bool) -> None:
+        query = """
+            UPDATE auction_event SET active = :active
+            WHERE auction_id = :aid AND seq = :seq
+        """
+        with self._engine.begin() as conn:  # type: ignore[attr-defined]
+            conn.execute(self._sql(query), {"aid": self._auction_id, "seq": seq, "active": active})
+
+    def version(self) -> tuple[int, int]:
+        query = """
+            SELECT COALESCE(MAX(seq), 0), COUNT(*) FILTER (WHERE active)
+            FROM auction_event WHERE auction_id = :aid
+        """
+        with self._engine.connect() as conn:  # type: ignore[attr-defined]
+            row = conn.execute(self._sql(query), {"aid": self._auction_id}).one()
+        return (int(row[0]), int(row[1]))
+
+    def reset(self) -> None:
+        with self._engine.begin() as conn:  # type: ignore[attr-defined]
+            conn.execute(
+                self._sql("DELETE FROM auction_event WHERE auction_id = :aid"),
+                {"aid": self._auction_id},
+            )
+
+    def replace_all(self, events: list[Event]) -> None:
+        """Sostituisce il log in una transazione sola.
+
+        Un ``append`` per evento sarebbe un round-trip per evento: ripristinare
+        meta' asta da un backup sono centinaia di viaggi verso il database,
+        proprio quando la rete non ne vuole sapere - che e' il motivo per cui
+        si sta ripristinando. Cosi' invece o arriva tutto o non arriva niente.
+        """
+        query = """
+            INSERT INTO auction_event (auction_id, seq, type, payload, active, created_at)
+            VALUES (:aid, :seq, :type, CAST(:payload AS JSONB), :active, :created_at)
+            ON CONFLICT (auction_id, seq) DO NOTHING
+        """
+        righe = [
+            {
+                "aid": self._auction_id,
+                "seq": event.seq,
+                "type": event.type.value,
+                "payload": json.dumps(event.payload, ensure_ascii=False),
+                "active": event.active,
+                "created_at": event.created_at,
+            }
+            for event in events
+        ]
+        with self._engine.begin() as conn:  # type: ignore[attr-defined]
+            conn.execute(
+                self._sql("DELETE FROM auction_event WHERE auction_id = :aid"),
+                {"aid": self._auction_id},
+            )
+            if righe:
+                conn.execute(self._sql(query), righe)

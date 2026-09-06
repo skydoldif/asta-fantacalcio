@@ -1,0 +1,36 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.DS_Store
+
+# I segreti non si committano mai: password dell'admin e stringa del database.
+.streamlit/secrets.toml
+
+# I backup dell'asta contengono i nomi delle squadre di chi gioca.
+backup_asta_*.json
+backup_fine_*.json
+
+# --------------------------------------------------------------- dati e media
+#
+# Questa roba non e' di chi scrive il codice: il listone e le statistiche sono
+# di fantacalcio.it, le fasce e le gerarchie vengono dagli articoli di chi le
+# ha scritte, gli stemmi sono marchi dei club e l'audio e' di chi l'ha
+# registrato. Ognuno si procura la sua (il README dice come) e resta sul suo
+# computer. Tenerla fuori per costruzione, invece che ricordarsi di non
+# committarla, e' l'unico modo perche' non scappi in un fork.
+data/raw/*.xlsx
+data/raw/*.md
+data/raw/*.png
+data/raw/*.jpg
+data/players_*.json
+data/griglia_*.json
+static/loghi/*
+!static/loghi/README.md
+static/audio/*
+!static/audio/README.md

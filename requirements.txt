@@ -1,0 +1,5 @@
+# Dipendenze di runtime lette da Streamlit Community Cloud.
+streamlit>=1.50
+SQLAlchemy>=2.0
+psycopg[binary]>=3.1
+pandas>=2.2
