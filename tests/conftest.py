@@ -8,6 +8,7 @@ listone vero, per verificare che il file committato sia coerente.
 from __future__ import annotations
 
 import pytest
+from scripts.build_players import RAW_DIR, XLSX_GLOB
 
 from asta.data.keepers import DEFAULT_GRID_PATH
 from asta.data.players import DEFAULT_PLAYERS_PATH, load_listone
@@ -31,9 +32,17 @@ def _serve(esiste: bool, cosa: str, come: str):
     return pytest.mark.skipif(not esiste, reason=f"{cosa} non presente: {come}")
 
 
+#: Il listone **vero**, non uno qualsiasi.
+#:
+#: Il segnale non e' il JSON ma l'Excel da cui nasce, e la differenza si e'
+#: vista appena e' esistito il branch della demo: li' ``data/players_*.json``
+#: c'e', ma dentro ci sono calciatori inventati. Guardando solo il JSON, tutti
+#: i test che affermano fatti del listone vero - 533 calciatori, i gol subiti
+#: delle squadre di A, le fasce dei tre reparti - partivano e cadevano.
+#: L'xlsx ufficiale invece una demo non ce l'ha mai: e' il discrimine giusto.
 serve_il_listone = _serve(
-    DEFAULT_PLAYERS_PATH.exists(),
-    "il listone",
+    DEFAULT_PLAYERS_PATH.exists() and any(RAW_DIR.glob(XLSX_GLOB)),
+    "il listone vero",
     "vedi README, sezione 'I dati che devi procurarti'",
 )
 serve_la_griglia = _serve(
@@ -113,7 +122,12 @@ def real_listone() -> Listone:
 
     Non e' nella repo: chi non se l'e' ancora costruito vede saltare i test
     che lo usano, invece di una catasta di FileNotFoundError.
+
+    "Vero" vuol dire con l'xlsx ufficiale accanto, per la stessa ragione di
+    :data:`serve_il_listone`: sul branch della demo il JSON c'e' ma i
+    calciatori sono inventati, e un test che afferma fatti del listone vero
+    non deve girarci sopra.
     """
-    if not DEFAULT_PLAYERS_PATH.exists():
-        pytest.skip("il listone non c'e': python scripts/build_players.py (vedi README)")
+    if not (DEFAULT_PLAYERS_PATH.exists() and any(RAW_DIR.glob(XLSX_GLOB))):
+        pytest.skip("il listone vero non c'e': python scripts/build_players.py (vedi README)")
     return load_listone()
