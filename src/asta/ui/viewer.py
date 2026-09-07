@@ -18,6 +18,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import streamlit as st
 
+from asta import config
 from asta.data.keepers import cached_keeper_grid, cached_keepers
 from asta.data.players import cached_lineups, cached_stats_season
 from asta.domain.models import ROLE_LABEL, ROLE_ORDER
@@ -46,6 +47,18 @@ _ATTESA = "L'asta non e' ancora stata configurata. Attendi l'amministratore."
 #: L'ora si mostra a chi e' nella stanza, non al server: Streamlit Cloud gira
 #: su UTC, e un orologio due ore indietro sembrerebbe un'app rotta.
 FUSO = "Europe/Rome"
+
+
+def avviso() -> None:
+    """L'avviso dei secrets, in cima a ogni pagina. Senza, non occupa niente.
+
+    Si disegna **fuori** dalle pagine, prima della navigazione: e' la stessa
+    riga dappertutto, e ripeterla in sei funzioni vorrebbe dire dimenticarla
+    nella settima.
+    """
+    testo = config.avviso()
+    if testo:
+        st.info(testo, icon="ℹ️")
 
 
 def _aggiornato() -> str:

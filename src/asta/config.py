@@ -3,11 +3,11 @@
 In locale si puo' usare ``.streamlit/secrets.toml`` (vedi il file
 ``.streamlit/secrets.toml.example``) oppure le variabili d'ambiente
 ``ASTA_DATABASE_URL``, ``ASTA_ADMIN_PASSWORD``, ``ASTA_PUBLIC_URL``,
-``ASTA_AUCTION_ID``.
+``ASTA_AUCTION_ID``, ``ASTA_AVVISO``.
 
 Senza ``database_url`` l'app parte comunque in **modalita demo**: lo stato vive
-solo nella sessione del browser. Utile per provare, inutilizzabile per l'asta
-vera (gli spettatori non vedrebbero nulla).
+nella memoria del processo e sparisce a ogni riavvio. Utile per provare e per
+una vetrina pubblica, inutilizzabile per l'asta vera.
 """
 
 from __future__ import annotations
@@ -36,6 +36,18 @@ def database_url() -> str:
 def admin_password() -> str:
     """Password della vista Admin; vuota disattiva la protezione (solo in locale)."""
     return _secret("admin_password")
+
+
+def avviso() -> str:
+    """Riga da mostrare in cima a tutte le pagine; vuota non mostra niente.
+
+    Nata per la demo pubblica, dove serve dire a chiare lettere che i
+    calciatori sono inventati - altrimenti l'unico vero fraintendimento
+    possibile e' che qualcuno prenda quelle quotazioni sul serio, e un avviso
+    nel README non lo legge nessuno. Vale per qualunque cosa vada detta a
+    tutti senza toccare il codice: "si comincia alle 21", "asta rinviata".
+    """
+    return _secret("avviso")
 
 
 def auction_id() -> str:
