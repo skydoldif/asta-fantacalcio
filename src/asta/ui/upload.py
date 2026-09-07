@@ -56,6 +56,61 @@ DESTINAZIONI: tuple[tuple[str, str, str], ...] = (
     (GRIGLIA_GLOB, "griglia_path", "Griglia delle coppie di portieri"),
 )
 
+#: Dove si scarica ogni file, casella per casella.
+#:
+#: Sta nel codice e non solo nel README perche' il momento in cui serve e'
+#: quello in cui si guarda il pannello che li chiede: chi apre l'app per la
+#: prima volta non ha nessun motivo di sapere che le fasce d'asta sono un
+#: articolo, ne' di quale sito.
+#:
+#: Gli indirizzi degli articoli contengono la stagione, quindi l'anno prossimo
+#: saranno altri. Se uno non risponde piu', si cerca il titolo: la pagina
+#: cambia numero, non nome.
+FONTI: dict[str, str] = {
+    "xlsx_path": "https://www.fantacalcio.it/quotazioni-fantacalcio",
+    "stats_path": "https://www.fantacalcio.it/statistiche-serie-a",
+    "tiers_D": (
+        "https://www.sosfanta.com/guida-asta-fantacalcio/"
+        "guida-asta-fantacalcio-2026-2027-tutti-consigli-fasce-chi-prendere/2/"
+    ),
+    "tiers_C": (
+        "https://www.sosfanta.com/guida-asta-fantacalcio/"
+        "guida-asta-fantacalcio-2026-2027-tutti-consigli-fasce-chi-prendere/3/"
+    ),
+    "tiers_A": (
+        "https://www.sosfanta.com/guida-asta-fantacalcio/"
+        "guida-asta-fantacalcio-2026-2027-tutti-consigli-fasce-chi-prendere/4/"
+    ),
+    "lineups_path": (
+        "https://www.sosfanta.com/asta-fantacalcio/"
+        "seriea-tutte-formazioni-tipo-fantacalcio-2026-2027-asta-consigli-chi-prendere/"
+    ),
+    "keepers_path": (
+        "https://www.sosfanta.com/consigli-fantacalcio/portieri/"
+        "fantacalcio-asta-tutti-portieri-gerarchie-seriea-venti-squadre-campionato/"
+    ),
+    "injuries_path": (
+        "https://www.sosfanta.com/indisponibili-e-squalificati/"
+        "tabella-indisponibili-seriea-fantacalcio-asta-infortunati-tempi-recupero-"
+        "squalificati-diffidati/"
+    ),
+    "penalties_path": (
+        "https://www.sosfanta.com/asta-fantacalcio/"
+        "fantacalcio-asta-tutti-rigoristi-seriea-venti-squadre-campionato/"
+    ),
+    "set_pieces_path": (
+        "https://www.sosfanta.com/asta-fantacalcio/"
+        "serie-a-2026-2027-tiratori-punizioni-corner-specialisti-fantacalcio-asta/"
+    ),
+    "griglia_path": "https://app.fantalab.it/griglia-portieri",
+}
+
+
+def sito(url: str) -> str:
+    """Il nome del sito, per scriverlo al posto di un indirizzo lunghissimo."""
+    return url.split("/")[2].removeprefix("www.")
+
+
 #: Il nome del file che serve per forza. Senza, non c'e' listone.
 OBBLIGATORIO = "xlsx_path"
 

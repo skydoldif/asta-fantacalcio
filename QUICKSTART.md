@@ -67,10 +67,14 @@ propone (`Quotazioni_Fantacalcio_Stagione_….xlsx`) va già bene così com'è. 
 
 Fatto: 500 e passa calciatori pronti.
 
-Vuoi anche fasce d'asta, probabili formazioni e gerarchie in porta? Incolla ognuno di quegli
-articoli in un file di testo, chiamalo come dice il
-[README](README.md#i-dati-che-devi-procurarti), e trascina anche quelli. Le **statistiche**
-dell'anno scorso si scaricano da <https://www.fantacalcio.it/statistiche-serie-a>. Sono tutti
+Vuoi anche fasce d'asta, probabili formazioni e gerarchie in porta? Nella stessa scheda apri
+**🔗 Dove si scaricano**: c'è l'indirizzo di ogni articolo, uno per riga. Salvi la pagina come
+file di testo, la chiami come dice il [README](README.md#i-dati-che-devi-procurarti), e
+trascini anche quella.
+
+> Per non copiaincollare a mano: [Obsidian Web
+> Clipper](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)
+> salva una pagina web **già in markdown**, che è esattamente il formato che l'app si aspetta. Sono tutti
 facoltativi: senza, sparisce solo quella colonna.
 
 **Non devi averli tutti adesso.** Torna in quella scheda quando vuoi e aggiungi quello che

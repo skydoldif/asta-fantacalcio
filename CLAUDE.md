@@ -21,10 +21,19 @@ Cosa devono procurarsi da soli, perché non è nella repo e non può esserci:
 | Serve | Dove |
 |---|---|
 | Un account GitHub, uno Supabase, uno Streamlit | gratuiti tutti e tre |
-| Il listone ufficiale, `Quotazioni_*.xlsx` | <https://www.fantacalcio.it/quotazioni-fantacalcio> |
-| Le statistiche dell'anno scorso (facoltative) | <https://www.fantacalcio.it/statistiche-serie-a> |
-| Gli stemmi delle squadre (facoltativi) | <https://football-logos.cc/italy/serie-a/> |
-| Gli audio della Soundbar (facoltativi) | <https://www.myinstants.com/en/index/it/> |
+| Il listone ufficiale, `Quotazioni_*.xlsx` — **l'unico obbligatorio** | <https://www.fantacalcio.it/quotazioni-fantacalcio> |
+| Le statistiche dell'anno scorso | <https://www.fantacalcio.it/statistiche-serie-a> |
+| Fasce d'asta, formazioni tipo, gerarchie in porta, rigoristi, piazzati, indisponibili | articoli di sosfanta.com |
+| La griglia delle coppie di portieri | <https://app.fantalab.it/griglia-portieri> — è un'immagine, i numeri si ricopiano a mano |
+| Gli stemmi delle squadre | <https://football-logos.cc/italy/serie-a/> |
+| Gli audio della Soundbar | <https://www.myinstants.com/en/index/it/> |
+
+**Gli indirizzi esatti degli articoli sono in `FONTI`, in `src/asta/ui/upload.py`**, e l'app li
+mostra da sola sotto *Gestione asta → Listone → 🔗 Dove si scaricano*: mandali lì invece di
+ricopiarli, così restano giusti anche quando cambia la stagione. Gli articoli si salvano in
+markdown con l'estensione [Obsidian Web
+Clipper](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf),
+che dà già il formato che l'app si aspetta.
 
 Il listone **non si committa e non si genera da terminale**: si carica dall'app, da *Gestione
 asta → Listone*, e finisce nel database. Anche a pezzi, in giorni diversi.

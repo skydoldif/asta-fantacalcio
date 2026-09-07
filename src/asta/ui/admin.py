@@ -63,10 +63,13 @@ from asta.ui.components import (
     player_card,
 )
 from asta.ui.upload import (
+    DESTINAZIONI,
+    FONTI,
     OBBLIGATORIO,
     Caselle,
     costruisci_da_caselle,
     etichette,
+    sito,
     smista,
     unisci,
 )
@@ -470,14 +473,6 @@ def _listone_caricato(state: AuctionState) -> None:
 #: incollati in un file di testo e la griglia dei portieri, che e' un JSON.
 FORMATI_LISTONE = ["xlsx", "md", "txt", "json"]
 
-#: Dove si scaricano i due file ufficiali. Il posto giusto per dirlo e' qui,
-#: dentro il riquadro che li chiede: chi apre l'app per la prima volta non ha
-#: nessun motivo di sapere che il listone si prende da fantacalcio.it.
-FONTI = (
-    "[Quotazioni](https://www.fantacalcio.it/quotazioni-fantacalcio) · "
-    "[Statistiche](https://www.fantacalcio.it/statistiche-serie-a)"
-)
-
 #: Chiave di sessione con l'esito dell'ultimo caricamento, da mostrare dopo
 #: il rerun che altrimenti se lo porterebbe via.
 ESITO_CARICAMENTO = "esito_caricamento_listone"
@@ -509,6 +504,7 @@ def _listone_tab(service: AuctionService, state: AuctionState) -> None:
     caselle = _caselle_caricate()
     st.divider()
     _cosa_c_e_gia(caselle)
+    _dove_si_scaricano(caselle)
     st.divider()
     _aggiungi_file(service, caselle)
 
@@ -559,6 +555,43 @@ def _cosa_c_e_gia(caselle: Caselle) -> None:
         _rigenera(dict(get_repository().load_listone_files()))
 
 
+def _dove_si_scaricano(caselle: Caselle) -> None:
+    """Dove si prende ognuno dei file, per quelli che ancora mancano.
+
+    Sta subito sotto la tabella di cosa c'e' gia': prima vedi il buco, poi
+    l'indirizzo per riempirlo. Chiuso di default, perche' a chi ha gia'
+    caricato tutto non serve.
+
+    Le righe gia' piene restano nell'elenco ma in fondo e senza enfasi: un
+    file si rifa' anche a stagione iniziata - gli infortunati cambiano ogni
+    settimana - quindi l'indirizzo deve restare raggiungibile.
+    """
+    ordine = sorted(DESTINAZIONI, key=lambda d: d[1] in caselle)
+    with st.expander("🔗 Dove si scaricano"):
+        st.markdown(
+            "\n".join(
+                # Il separatore e' un punto e non un trattino: due delle
+                # etichette un trattino ce l'hanno gia' dentro.
+                f"- {'✅ ' if destinazione in caselle else ''}**{etichetta}** · "
+                f"[{sito(FONTI[destinazione])}]({FONTI[destinazione]})"
+                for _, destinazione, etichetta in ordine
+            )
+        )
+        st.caption(
+            "Gli articoli si incollano in un file di testo, uno per riga di questo elenco. "
+            "Per non farlo a mano c'e' [Obsidian Web Clipper]"
+            "(https://chromewebstore.google.com/detail/obsidian-web-clipper/"
+            "cnjifjpddelmedmihgijeibhnjfabmlf), che salva una pagina web gia' in markdown: "
+            "e' esattamente il formato che l'app si aspetta. La griglia dei portieri e' "
+            "un'immagine, quindi quella va ricopiata a mano."
+        )
+        st.caption(
+            "Gli indirizzi degli articoli contengono la stagione: l'anno prossimo saranno "
+            "altri. Se uno non risponde piu', cerca il titolo - la pagina cambia numero, "
+            "non nome."
+        )
+
+
 def _aggiungi_file(service: AuctionService, caselle: Caselle) -> None:
     """Caricamento di file nuovi, che si sommano a quelli gia' presenti."""
     st.subheader("Aggiungi o sostituisci")
@@ -568,7 +601,6 @@ def _aggiungi_file(service: AuctionService, caselle: Caselle) -> None:
         f"settimana prima dell'asta. L'unico indispensabile e' `{XLSX_GLOB}`, "
         "e ogni file si riconosce dal nome."
     )
-    st.caption(f"I due Excel ufficiali si scaricano da fantacalcio.it: {FONTI}.")
     caricati = st.file_uploader(
         "File del listone",
         type=FORMATI_LISTONE,

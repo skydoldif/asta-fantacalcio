@@ -17,16 +17,19 @@ from scripts.build_players import RAW_DIR, build_payload, find_xlsx
 from asta.data.keepers import DEFAULT_GRID_PATH
 from asta.data.players import DEFAULT_PLAYERS_PATH
 from asta.ui.upload import (
-    GRIGLIA as CASELLA_GRIGLIA,
-)
-from asta.ui.upload import (
+    DESTINAZIONI,
+    FONTI,
     OBBLIGATORIO,
     controlla_griglia,
     costruisci,
     costruisci_da_caselle,
     etichette,
+    sito,
     smista,
     unisci,
+)
+from asta.ui.upload import (
+    GRIGLIA as CASELLA_GRIGLIA,
 )
 from conftest import serve_il_listone, serve_la_griglia
 
@@ -285,3 +288,27 @@ def test_una_griglia_storta_non_impedisce_di_generare_il_listone():
 def test_la_griglia_committata_supera_il_controllo():
     """Lo stesso controllo che la suite fa sul file vero, dal lato caricamento."""
     assert controlla_griglia(DEFAULT_GRID_PATH.read_bytes()) == []
+
+
+# ------------------------------------------------------------------------ fonti
+
+
+def test_ogni_casella_dice_dove_si_scarica():
+    """Il pannello legge ``FONTI`` per ogni casella: se ne manca una, cade.
+
+    Aggiungere una destinazione senza il suo indirizzo e' l'unico modo di
+    rompere la scheda Listone, e succederebbe la prossima volta che si
+    aggiunge un articolo.
+    """
+    assert {d for _, d, _ in DESTINAZIONI} == set(FONTI)
+
+
+def test_gli_indirizzi_delle_fonti_sono_indirizzi():
+    for casella, url in FONTI.items():
+        assert url.startswith("https://"), casella
+        assert sito(url), casella
+
+
+def test_il_sito_si_legge_senza_il_www():
+    assert sito("https://www.fantacalcio.it/quotazioni-fantacalcio") == "fantacalcio.it"
+    assert sito("https://app.fantalab.it/griglia-portieri") == "app.fantalab.it"

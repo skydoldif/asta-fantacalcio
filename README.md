@@ -61,23 +61,37 @@ da regalare. Il codice sì.
 Python, niente terminale, niente commit — restano nel tuo database e non passano mai da
 GitHub. E non devi averli tutti insieme: carica quello che hai, torna quando hai il resto.
 
-| Cosa | Da dove arriva |
-|---|---|
-| **`Quotazioni_Fantacalcio_Stagione_AAAA_AA.xlsx`** | <https://www.fantacalcio.it/quotazioni-fantacalcio>, formato **Excel**, con il tuo account |
-| `Statistiche_Fantacalcio_Stagione_AAAA_AA.xlsx` | <https://www.fantacalcio.it/statistiche-serie-a> (c'è anche la versione *aggiuntive portieri*: se le carichi entrambe vince quella, che ha i gol subiti) |
-| `difensori.md` · `centrocampisti.md` · `attaccanti.md` | gli articoli sulle **fasce d'asta**, incollati in un file di testo. Io usavo quelli di [SOS Fanta](https://www.sosfanta.com) |
-| `probabili_formazioni.md` | l'articolo delle probabili formazioni |
-| `portieri.md` | l'articolo sulle gerarchie in porta |
-| `infortunati.md` · `rigoristi_*.md` · `corner_e_punizioni_*.md` | i rispettivi articoli |
-| `griglia_portieri_*.json` | la griglia delle coppie di portieri, trascritta a mano da un'immagine: vedi [La griglia delle coppie](#la-griglia-delle-coppie) |
+| File | Cosa aggiunge | Dove si prende |
+|---|---|---|
+| **`Quotazioni_Fantacalcio_Stagione_AAAA_AA.xlsx`** | i calciatori e le quotazioni | <https://www.fantacalcio.it/quotazioni-fantacalcio>, formato **Excel**, con il tuo account |
+| `Statistiche_Fantacalcio_Stagione_AAAA_AA.xlsx` | rendimenti dell'anno scorso | <https://www.fantacalcio.it/statistiche-serie-a> — c'è anche la versione *aggiuntive portieri*: se le carichi entrambe vince quella, che ha i gol subiti |
+| `difensori.md` | fasce d'asta dei difensori | [guida all'asta, difensori](https://www.sosfanta.com/guida-asta-fantacalcio/guida-asta-fantacalcio-2026-2027-tutti-consigli-fasce-chi-prendere/2/) |
+| `centrocampisti.md` | fasce d'asta dei centrocampisti | [guida all'asta, centrocampisti](https://www.sosfanta.com/guida-asta-fantacalcio/guida-asta-fantacalcio-2026-2027-tutti-consigli-fasce-chi-prendere/3/) |
+| `attaccanti.md` | fasce d'asta degli attaccanti | [guida all'asta, attaccanti](https://www.sosfanta.com/guida-asta-fantacalcio/guida-asta-fantacalcio-2026-2027-tutti-consigli-fasce-chi-prendere/4/) |
+| `portieri.md` | le gerarchie in porta | [tutti i portieri, gerarchie](https://www.sosfanta.com/consigli-fantacalcio/portieri/fantacalcio-asta-tutti-portieri-gerarchie-seriea-venti-squadre-campionato/) |
+| `probabili_formazioni.md` | moduli e titolarità | [formazioni tipo](https://www.sosfanta.com/asta-fantacalcio/seriea-tutte-formazioni-tipo-fantacalcio-2026-2027-asta-consigli-chi-prendere/) |
+| `rigoristi_*.md` | chi tira i rigori | [tutti i rigoristi](https://www.sosfanta.com/asta-fantacalcio/fantacalcio-asta-tutti-rigoristi-seriea-venti-squadre-campionato/) |
+| `corner_e_punizioni_*.md` | chi batte i piazzati | [specialisti dei piazzati](https://www.sosfanta.com/asta-fantacalcio/serie-a-2026-2027-tiratori-punizioni-corner-specialisti-fantacalcio-asta/) |
+| `infortunati.md` | chi è fuori e per quanto | [tabella indisponibili](https://www.sosfanta.com/indisponibili-e-squalificati/tabella-indisponibili-seriea-fantacalcio-asta-infortunati-tempi-recupero-squalificati-diffidati/) |
+| `griglia_portieri_*.json` | la griglia delle coppie | l'originale è su <https://app.fantalab.it/griglia-portieri>, ma è un'immagine: vedi [La griglia delle coppie](#la-griglia-delle-coppie) |
 
 **Solo il primo è obbligatorio.** Tutto il resto è in più, e l'app è fatta per reggerne
 l'assenza: manca un file, sparisce quella colonna o quella pagina, e il resto funziona.
 
+Gli indirizzi degli articoli **contengono la stagione**: fra un anno saranno altri. Se uno non
+risponde più, cerca il titolo — la pagina cambia numero, non nome. Lo stesso elenco, coi link,
+è dentro l'app sotto *Gestione asta → Listone → 🔗 Dove si scaricano*: è lì che serve davvero,
+non qui.
+
+Gli articoli vanno salvati come file di testo, e non c'è bisogno di farlo a mano:
+[Obsidian Web Clipper](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)
+è un'estensione che salva una pagina web **già in markdown**, che è esattamente il formato che
+l'app si aspetta. Scarichi, rinomini come dice la tabella, trascini nel pannello.
+
 I file si riconoscono **dal nome**, e prima di generare il pannello ti scrive cosa ha
 riconosciuto e cosa ha ignorato: un nome sbagliato si vede lì, non a metà asta. Il formato
 che ogni articolo deve avere è descritto in [Aggiornare il listone](#aggiornare-il-listone),
-sezione per sezione — sono file di testo in cui incolli l'articolo, e lo script si arrangia.
+sezione per sezione — lo script si arrangia con la prosa, non serve ripulirla.
 
 Restano fuori dal caricamento solo i **file media**, che vanno messi nella repo se li vuoi:
 gli **stemmi** in `static/loghi/` — si scaricano da
@@ -723,9 +737,10 @@ Il file si carica da *Gestione asta → Listone* come tutti gli altri, purché s
 `griglia_*.json`. Non entra nel listone — questa pagina la legge per conto suo — quindi
 caricarla non cambia una virgola dei calciatori.
 
-**Quasi sicuramente non ne avrai una, ed è normale**: sono 190 numeri da ricopiare da
-un'immagine, e la mia non posso dartela perché quei numeri sono l'analisi di qualcun altro. Se
-manca, la sezione semplicemente non compare e le gerarchie in porta restano. Se te la vuoi
+L'originale è su <https://app.fantalab.it/griglia-portieri>, ed è **un'immagine**: i 190 numeri
+vanno ricopiati a mano, e la mia trascrizione non posso dartela perché quei numeri sono
+l'analisi di qualcun altro. Quindi è probabile che tu non abbia questa griglia, ed è normale:
+se manca, la sezione semplicemente non compare e le gerarchie in porta restano. Se te la vuoi
 fare, la forma è questa:
 
 ```json
