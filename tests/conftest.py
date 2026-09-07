@@ -32,22 +32,27 @@ def _serve(esiste: bool, cosa: str, come: str):
     return pytest.mark.skipif(not esiste, reason=f"{cosa} non presente: {come}")
 
 
-#: Il listone **vero**, non uno qualsiasi.
+#: Ci sono i dati **veri**, non quelli di una demo.
 #:
-#: Il segnale non e' il JSON ma l'Excel da cui nasce, e la differenza si e'
-#: vista appena e' esistito il branch della demo: li' ``data/players_*.json``
-#: c'e', ma dentro ci sono calciatori inventati. Guardando solo il JSON, tutti
-#: i test che affermano fatti del listone vero - 533 calciatori, i gol subiti
-#: delle squadre di A, le fasce dei tre reparti - partivano e cadevano.
-#: L'xlsx ufficiale invece una demo non ce l'ha mai: e' il discrimine giusto.
+#: Il segnale non e' il JSON del listone ma l'Excel da cui nasce, e la
+#: differenza si e' vista appena e' esistito il branch della demo: li'
+#: ``data/players_*.json`` c'e', ma dentro ci sono calciatori inventati.
+#: Guardando solo il JSON, tutti i test che affermano fatti del listone vero -
+#: 533 calciatori, i gol subiti delle squadre di A, le fasce dei tre reparti -
+#: partivano e cadevano. L'xlsx ufficiale una demo non ce l'ha mai.
+_DATI_VERI = DEFAULT_PLAYERS_PATH.exists() and any(RAW_DIR.glob(XLSX_GLOB))
+
 serve_il_listone = _serve(
-    DEFAULT_PLAYERS_PATH.exists() and any(RAW_DIR.glob(XLSX_GLOB)),
+    _DATI_VERI,
     "il listone vero",
     "vedi README, sezione 'I dati che devi procurarti'",
 )
+#: Anche qui serve quella **vera**: c'e' chi controlla che i valori stiano nel
+#: range dell'originale e chi cerca una coppia per nome. Una griglia inventata
+#: e' simmetrica come si deve, ma non e' quella.
 serve_la_griglia = _serve(
-    DEFAULT_GRID_PATH.exists(),
-    "la griglia dei portieri",
+    _DATI_VERI and DEFAULT_GRID_PATH.exists(),
+    "la griglia dei portieri vera",
     "e' facoltativa, si trascrive a mano dall'articolo",
 )
 servono_gli_stemmi = _serve(
@@ -128,6 +133,6 @@ def real_listone() -> Listone:
     calciatori sono inventati, e un test che afferma fatti del listone vero
     non deve girarci sopra.
     """
-    if not (DEFAULT_PLAYERS_PATH.exists() and any(RAW_DIR.glob(XLSX_GLOB))):
+    if not _DATI_VERI:
         pytest.skip("il listone vero non c'e': python scripts/build_players.py (vedi README)")
     return load_listone()
