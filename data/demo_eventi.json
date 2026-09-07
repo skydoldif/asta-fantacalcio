@@ -1,6 +1,6 @@
 {
  "version": 1,
- "exported_at": "2026-09-07T18:47:11.258322+00:00",
+ "exported_at": "2026-09-07T18:54:28.826868+00:00",
  "events": [
   {
    "seq": 1,
@@ -36,7 +36,7 @@
     ]
    },
    "active": true,
-   "created_at": "2026-08-28T20:31:03+00:00"
+   "created_at": "2026-08-28T20:30:59+00:00"
   },
   {
    "seq": 2,
@@ -45,193 +45,160 @@
     "role": "P"
    },
    "active": true,
-   "created_at": "2026-08-28T20:32:33+00:00"
+   "created_at": "2026-08-28T20:31:23+00:00"
   },
   {
    "seq": 3,
    "type": "LETTER_DRAWN",
    "payload": {
     "role": "P",
-    "letter": "P",
-    "seed": 756363
+    "letter": "S",
+    "seed": 808165
    },
    "active": true,
-   "created_at": "2026-08-28T20:34:01+00:00"
+   "created_at": "2026-08-28T20:31:47+00:00"
   },
   {
    "seq": 4,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1217,
+    "player_id": 1265,
     "team": "Real Panchina",
-    "price": 29
+    "price": 24
    },
    "active": true,
-   "created_at": "2026-08-28T20:35:29+00:00"
+   "created_at": "2026-08-28T20:32:17+00:00"
   },
   {
    "seq": 5,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1433,
+    "player_id": 1313,
     "team": "Atletico Divano",
-    "price": 25
+    "price": 15
    },
    "active": true,
-   "created_at": "2026-08-28T20:36:28+00:00"
+   "created_at": "2026-08-28T20:33:12+00:00"
   },
   {
    "seq": 6,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1386,
+    "player_id": 1457,
     "team": "Borussia Merenda",
-    "price": 11
+    "price": 28
    },
    "active": true,
-   "created_at": "2026-08-28T20:37:23+00:00"
+   "created_at": "2026-08-28T20:33:34+00:00"
   },
   {
    "seq": 7,
-   "type": "PLAYER_ASSIGNED",
+   "type": "PLAYER_SKIPPED",
    "payload": {
-    "player_id": 1074,
-    "team": "Deportivo Rinvio",
-    "price": 11
+    "player_id": 1458
    },
    "active": true,
-   "created_at": "2026-08-28T20:37:53+00:00"
+   "created_at": "2026-08-28T20:34:17+00:00"
   },
   {
    "seq": 8,
-   "type": "LETTER_DRAWN",
+   "type": "PLAYER_SKIPPED",
    "payload": {
-    "role": "P",
-    "letter": "Q",
-    "seed": 963795
+    "player_id": 1195
    },
    "active": true,
-   "created_at": "2026-08-28T20:39:11+00:00"
+   "created_at": "2026-08-28T20:34:47+00:00"
   },
   {
    "seq": 9,
-   "type": "PLAYER_ASSIGNED",
+   "type": "LETTER_DRAWN",
    "payload": {
-    "player_id": 1073,
-    "team": "Sporting Ammonito",
-    "price": 32
+    "role": "P",
+    "letter": "M",
+    "seed": 194046
    },
    "active": true,
-   "created_at": "2026-08-28T20:40:06+00:00"
+   "created_at": "2026-08-28T20:35:29+00:00"
   },
   {
    "seq": 10,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1051,
-    "team": "Union Fuorigioco",
-    "price": 1
+    "player_id": 1337,
+    "team": "Deportivo Rinvio",
+    "price": 18
    },
    "active": true,
-   "created_at": "2026-08-28T20:41:20+00:00"
+   "created_at": "2026-08-28T20:36:10+00:00"
   },
   {
    "seq": 11,
-   "type": "PLAYER_SKIPPED",
+   "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1099
+    "player_id": 1121,
+    "team": "Sporting Ammonito",
+    "price": 23
    },
    "active": true,
-   "created_at": "2026-08-28T20:42:25+00:00"
+   "created_at": "2026-08-28T20:36:48+00:00"
   },
   {
    "seq": 12,
-   "type": "LETTER_DRAWN",
+   "type": "PLAYER_ASSIGNED",
    "payload": {
-    "role": "P",
-    "letter": "M",
-    "seed": 984861
+    "player_id": 1361,
+    "team": "Union Fuorigioco",
+    "price": 18
    },
    "active": true,
-   "created_at": "2026-08-28T20:42:49+00:00"
+   "created_at": "2026-08-28T20:37:11+00:00"
   },
   {
    "seq": 13,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1337,
+    "player_id": 1050,
     "team": "Bayer Contropiede",
-    "price": 20
+    "price": 12
    },
    "active": true,
-   "created_at": "2026-08-28T20:43:27+00:00"
+   "created_at": "2026-08-28T20:37:40+00:00"
   },
   {
    "seq": 14,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1121,
+    "player_id": 1171,
     "team": "Olympique Recupero",
-    "price": 27
+    "price": 2
    },
    "active": true,
-   "created_at": "2026-08-28T20:44:41+00:00"
+   "created_at": "2026-08-28T20:38:10+00:00"
   },
   {
    "seq": 15,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1361,
-    "team": "Union Fuorigioco",
-    "price": 20
+    "player_id": 1003,
+    "team": "Olympique Recupero",
+    "price": 1
    },
    "active": true,
-   "created_at": "2026-08-28T20:46:02+00:00"
+   "created_at": "2026-08-28T20:39:18+00:00"
   },
   {
    "seq": 16,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1050,
-    "team": "Borussia Merenda",
-    "price": 9
+    "player_id": 1411,
+    "team": "Bayer Contropiede",
+    "price": 2
    },
    "active": true,
-   "created_at": "2026-08-28T20:46:49+00:00"
+   "created_at": "2026-08-28T20:40:03+00:00"
   },
   {
    "seq": 17,
-   "type": "PLAYER_SKIPPED",
-   "payload": {
-    "player_id": 1171
-   },
-   "active": true,
-   "created_at": "2026-08-28T20:48:10+00:00"
-  },
-  {
-   "seq": 18,
-   "type": "PLAYER_ASSIGNED",
-   "payload": {
-    "player_id": 1003,
-    "team": "Deportivo Rinvio",
-    "price": 1
-   },
-   "active": true,
-   "created_at": "2026-08-28T20:48:34+00:00"
-  },
-  {
-   "seq": 19,
-   "type": "PLAYER_ASSIGNED",
-   "payload": {
-    "player_id": 1411,
-    "team": "Bayer Contropiede",
-    "price": 1
-   },
-   "active": true,
-   "created_at": "2026-08-28T20:49:04+00:00"
-  },
-  {
-   "seq": 20,
    "type": "PLAYER_ASSIGNED",
    "payload": {
     "player_id": 1315,
@@ -239,613 +206,699 @@
     "price": 1
    },
    "active": true,
-   "created_at": "2026-08-28T20:49:59+00:00"
+   "created_at": "2026-08-28T20:41:21+00:00"
+  },
+  {
+   "seq": 18,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1267,
+    "team": "Deportivo Rinvio",
+    "price": 2
+   },
+   "active": true,
+   "created_at": "2026-08-28T20:42:18+00:00"
+  },
+  {
+   "seq": 19,
+   "type": "LETTER_DRAWN",
+   "payload": {
+    "role": "P",
+    "letter": "Z",
+    "seed": 67882
+   },
+   "active": true,
+   "created_at": "2026-08-28T20:43:45+00:00"
+  },
+  {
+   "seq": 20,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1098,
+    "team": "Union Fuorigioco",
+    "price": 6
+   },
+   "active": true,
+   "created_at": "2026-08-28T20:44:47+00:00"
   },
   {
    "seq": 21,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1267,
-    "team": "Olympique Recupero",
-    "price": 2
+    "player_id": 1075,
+    "team": "Sporting Ammonito",
+    "price": 1
    },
    "active": true,
-   "created_at": "2026-08-28T20:50:21+00:00"
+   "created_at": "2026-08-28T20:45:53+00:00"
   },
   {
    "seq": 22,
-   "type": "LETTER_DRAWN",
+   "type": "PLAYER_ASSIGNED",
    "payload": {
-    "role": "P",
-    "letter": "N",
-    "seed": 104852
+    "player_id": 1219,
+    "team": "Real Panchina",
+    "price": 1
    },
    "active": true,
-   "created_at": "2026-08-28T20:51:15+00:00"
+   "created_at": "2026-08-28T20:46:26+00:00"
   },
   {
    "seq": 23,
-   "type": "PLAYER_ASSIGNED",
+   "type": "PLAYER_SKIPPED",
    "payload": {
-    "player_id": 1049,
-    "team": "Real Panchina",
-    "price": 23
+    "player_id": 1147
    },
    "active": true,
-   "created_at": "2026-08-28T20:51:45+00:00"
+   "created_at": "2026-08-28T20:47:19+00:00"
   },
   {
    "seq": 24,
-   "type": "PLAYER_ASSIGNED",
+   "type": "LETTER_DRAWN",
    "payload": {
-    "player_id": 1242,
-    "team": "Sporting Ammonito",
-    "price": 10
+    "role": "P",
+    "letter": "F",
+    "seed": 560913
    },
    "active": true,
-   "created_at": "2026-08-28T20:52:29+00:00"
+   "created_at": "2026-08-28T20:47:56+00:00"
   },
   {
    "seq": 25,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1194,
-    "team": "Deportivo Rinvio",
-    "price": 12
+    "player_id": 1122,
+    "team": "Borussia Merenda",
+    "price": 10
    },
    "active": true,
-   "created_at": "2026-08-28T20:53:42+00:00"
+   "created_at": "2026-08-28T20:49:12+00:00"
   },
   {
    "seq": 26,
-   "type": "PLAYER_ASSIGNED",
-   "payload": {
-    "player_id": 1027,
-    "team": "Borussia Merenda",
-    "price": 2
-   },
-   "active": true,
-   "created_at": "2026-08-28T20:54:24+00:00"
-  },
-  {
-   "seq": 27,
    "type": "LETTER_DRAWN",
    "payload": {
     "role": "P",
-    "letter": "V",
-    "seed": 365035
+    "letter": "T",
+    "seed": 741053
    },
    "active": true,
-   "created_at": "2026-08-28T20:54:47+00:00"
+   "created_at": "2026-08-28T20:49:56+00:00"
+  },
+  {
+   "seq": 27,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1409,
+    "team": "Olympique Recupero",
+    "price": 29
+   },
+   "active": true,
+   "created_at": "2026-08-28T20:50:22+00:00"
   },
   {
    "seq": 28,
-   "type": "PLAYER_ASSIGNED",
+   "type": "PLAYER_SKIPPED",
    "payload": {
-    "player_id": 1385,
-    "team": "Union Fuorigioco",
-    "price": 30
+    "player_id": 1123
    },
    "active": true,
-   "created_at": "2026-08-28T20:55:16+00:00"
+   "created_at": "2026-08-28T20:51:01+00:00"
   },
   {
    "seq": 29,
-   "type": "PLAYER_ASSIGNED",
+   "type": "LETTER_DRAWN",
    "payload": {
-    "player_id": 1025,
-    "team": "Bayer Contropiede",
-    "price": 28
+    "role": "P",
+    "letter": "P",
+    "seed": 557054
    },
    "active": true,
-   "created_at": "2026-08-28T20:55:46+00:00"
+   "created_at": "2026-08-28T20:51:41+00:00"
   },
   {
    "seq": 30,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1097,
-    "team": "Atletico Divano",
-    "price": 24
+    "player_id": 1217,
+    "team": "Bayer Contropiede",
+    "price": 27
    },
    "active": true,
-   "created_at": "2026-08-28T20:56:54+00:00"
+   "created_at": "2026-08-28T20:52:31+00:00"
   },
   {
    "seq": 31,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1146,
-    "team": "Olympique Recupero",
-    "price": 11
+    "player_id": 1433,
+    "team": "Atletico Divano",
+    "price": 16
    },
    "active": true,
-   "created_at": "2026-08-28T20:57:39+00:00"
+   "created_at": "2026-08-28T20:53:59+00:00"
   },
   {
    "seq": 32,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1290,
-    "team": "Sporting Ammonito",
-    "price": 7
+    "player_id": 1386,
+    "team": "Deportivo Rinvio",
+    "price": 13
    },
    "active": true,
-   "created_at": "2026-08-28T20:58:57+00:00"
+   "created_at": "2026-08-28T20:55:00+00:00"
   },
   {
    "seq": 33,
-   "type": "LETTER_DRAWN",
+   "type": "PLAYER_ASSIGNED",
    "payload": {
-    "role": "P",
-    "letter": "T",
-    "seed": 949904
+    "player_id": 1074,
+    "team": "Sporting Ammonito",
+    "price": 12
    },
    "active": true,
-   "created_at": "2026-08-28T20:59:54+00:00"
+   "created_at": "2026-08-28T20:55:48+00:00"
   },
   {
    "seq": 34,
-   "type": "PLAYER_SKIPPED",
+   "type": "LETTER_DRAWN",
    "payload": {
-    "player_id": 1409
+    "role": "P",
+    "letter": "C",
+    "seed": 751936
    },
    "active": true,
-   "created_at": "2026-08-28T21:01:21+00:00"
+   "created_at": "2026-08-28T20:57:10+00:00"
   },
   {
    "seq": 35,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1123,
-    "team": "Real Panchina",
-    "price": 1
+    "player_id": 1026,
+    "team": "Union Fuorigioco",
+    "price": 12
    },
    "active": true,
-   "created_at": "2026-08-28T21:02:23+00:00"
+   "created_at": "2026-08-28T20:57:39+00:00"
   },
   {
    "seq": 36,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1362,
+    "team": "Real Panchina",
+    "price": 6
+   },
+   "active": true,
+   "created_at": "2026-08-28T20:58:57+00:00"
+  },
+  {
+   "seq": 37,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1435,
+    "team": "Borussia Merenda",
+    "price": 2
+   },
+   "active": true,
+   "created_at": "2026-08-28T20:59:33+00:00"
+  },
+  {
+   "seq": 38,
    "type": "ROLE_PHASE_STARTED",
    "payload": {
     "role": "D"
    },
    "active": true,
-   "created_at": "2026-08-28T21:03:07+00:00"
-  },
-  {
-   "seq": 37,
-   "type": "LETTER_DRAWN",
-   "payload": {
-    "role": "D",
-    "letter": "N",
-    "seed": 591042
-   },
-   "active": true,
-   "created_at": "2026-08-28T21:04:03+00:00"
-  },
-  {
-   "seq": 38,
-   "type": "PLAYER_ASSIGNED",
-   "payload": {
-    "player_id": 1268,
-    "team": "Borussia Merenda",
-    "price": 28
-   },
-   "active": true,
-   "created_at": "2026-08-28T21:04:47+00:00"
+   "created_at": "2026-08-28T21:00:58+00:00"
   },
   {
    "seq": 39,
-   "type": "PLAYER_ASSIGNED",
+   "type": "LETTER_DRAWN",
    "payload": {
-    "player_id": 1460,
-    "team": "Deportivo Rinvio",
-    "price": 35
+    "role": "D",
+    "letter": "S",
+    "seed": 301784
    },
    "active": true,
-   "created_at": "2026-08-28T21:05:13+00:00"
+   "created_at": "2026-08-28T21:01:25+00:00"
   },
   {
    "seq": 40,
-   "type": "PLAYER_SKIPPED",
+   "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1365
+    "player_id": 1172,
+    "team": "Real Panchina",
+    "price": 26
    },
    "active": true,
-   "created_at": "2026-08-28T21:05:52+00:00"
+   "created_at": "2026-08-28T21:01:47+00:00"
   },
   {
    "seq": 41,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1245,
-    "team": "Olympique Recupero",
-    "price": 19
+    "player_id": 1004,
+    "team": "Atletico Divano",
+    "price": 38
    },
    "active": true,
-   "created_at": "2026-08-28T21:06:42+00:00"
+   "created_at": "2026-08-28T21:02:48+00:00"
   },
   {
    "seq": 42,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1150,
-    "team": "Sporting Ammonito",
-    "price": 11
+    "player_id": 1125,
+    "team": "Olympique Recupero",
+    "price": 18
    },
    "active": true,
-   "created_at": "2026-08-28T21:08:10+00:00"
+   "created_at": "2026-08-28T21:03:54+00:00"
   },
   {
    "seq": 43,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1103,
-    "team": "Bayer Contropiede",
-    "price": 19
+    "player_id": 1461,
+    "team": "Deportivo Rinvio",
+    "price": 17
    },
    "active": true,
-   "created_at": "2026-08-28T21:09:11+00:00"
+   "created_at": "2026-08-28T21:05:10+00:00"
   },
   {
    "seq": 44,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1031,
-    "team": "Atletico Divano",
-    "price": 17
+    "player_id": 1341,
+    "team": "Sporting Ammonito",
+    "price": 19
    },
    "active": true,
-   "created_at": "2026-08-28T21:09:59+00:00"
+   "created_at": "2026-08-28T21:06:06+00:00"
   },
   {
    "seq": 45,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1273,
+    "player_id": 1173,
     "team": "Union Fuorigioco",
-    "price": 6
+    "price": 18
    },
    "active": true,
-   "created_at": "2026-08-28T21:10:28+00:00"
+   "created_at": "2026-08-28T21:06:55+00:00"
   },
   {
    "seq": 46,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1082,
-    "team": "Real Panchina",
-    "price": 2
+    "player_id": 1269,
+    "team": "Borussia Merenda",
+    "price": 28
    },
    "active": true,
-   "created_at": "2026-08-28T21:11:46+00:00"
+   "created_at": "2026-08-28T21:07:49+00:00"
   },
   {
    "seq": 47,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1298,
-    "team": "Borussia Merenda",
-    "price": 4
+    "player_id": 1317,
+    "team": "Bayer Contropiede",
+    "price": 26
    },
    "active": true,
-   "created_at": "2026-08-28T21:12:22+00:00"
+   "created_at": "2026-08-28T21:08:19+00:00"
   },
   {
    "seq": 48,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1154,
-    "team": "Real Panchina",
-    "price": 3
+    "player_id": 1366,
+    "team": "Deportivo Rinvio",
+    "price": 22
    },
    "active": true,
-   "created_at": "2026-08-28T21:12:50+00:00"
+   "created_at": "2026-08-28T21:09:38+00:00"
   },
   {
    "seq": 49,
-   "type": "PLAYER_SKIPPED",
+   "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1467
+    "player_id": 1030,
+    "team": "Olympique Recupero",
+    "price": 17
    },
    "active": true,
-   "created_at": "2026-08-28T21:13:46+00:00"
+   "created_at": "2026-08-28T21:10:42+00:00"
   },
   {
    "seq": 50,
-   "type": "LETTER_DRAWN",
+   "type": "PLAYER_ASSIGNED",
    "payload": {
-    "role": "D",
-    "letter": "G",
-    "seed": 49839
+    "player_id": 1055,
+    "team": "Union Fuorigioco",
+    "price": 18
    },
    "active": true,
-   "created_at": "2026-08-28T21:15:04+00:00"
+   "created_at": "2026-08-28T21:12:00+00:00"
   },
   {
    "seq": 51,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1364,
-    "team": "Union Fuorigioco",
-    "price": 31
+    "player_id": 1032,
+    "team": "Sporting Ammonito",
+    "price": 10
    },
    "active": true,
-   "created_at": "2026-08-28T21:15:57+00:00"
+   "created_at": "2026-08-28T21:12:55+00:00"
   },
   {
    "seq": 52,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1006,
-    "team": "Deportivo Rinvio",
-    "price": 18
+    "player_id": 1080,
+    "team": "Real Panchina",
+    "price": 9
    },
    "active": true,
-   "created_at": "2026-08-28T21:17:11+00:00"
+   "created_at": "2026-08-28T21:14:23+00:00"
   },
   {
    "seq": 53,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1271,
-    "team": "Olympique Recupero",
-    "price": 18
+    "player_id": 1128,
+    "team": "Bayer Contropiede",
+    "price": 6
    },
    "active": true,
-   "created_at": "2026-08-28T21:18:14+00:00"
+   "created_at": "2026-08-28T21:15:03+00:00"
   },
   {
    "seq": 54,
-   "type": "PLAYER_ASSIGNED",
+   "type": "PLAYER_SKIPPED",
    "payload": {
-    "player_id": 1249,
-    "team": "Sporting Ammonito",
-    "price": 7
+    "player_id": 1393
    },
    "active": true,
-   "created_at": "2026-08-28T21:18:36+00:00"
+   "created_at": "2026-08-28T21:16:23+00:00"
   },
   {
    "seq": 55,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1177,
-    "team": "Atletico Divano",
-    "price": 7
+    "player_id": 1441,
+    "team": "Borussia Merenda",
+    "price": 3
    },
    "active": true,
-   "created_at": "2026-08-28T21:19:37+00:00"
+   "created_at": "2026-08-28T21:17:10+00:00"
   },
   {
    "seq": 56,
-   "type": "PLAYER_ASSIGNED",
-   "payload": {
-    "player_id": 1274,
-    "team": "Bayer Contropiede",
-    "price": 2
-   },
-   "active": true,
-   "created_at": "2026-08-28T21:20:43+00:00"
-  },
-  {
-   "seq": 57,
    "type": "LETTER_DRAWN",
    "payload": {
     "role": "D",
-    "letter": "B",
-    "seed": 660987
+    "letter": "V",
+    "seed": 856022
    },
    "active": true,
-   "created_at": "2026-08-28T21:21:28+00:00"
+   "created_at": "2026-08-28T21:17:57+00:00"
+  },
+  {
+   "seq": 57,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1197,
+    "team": "Atletico Divano",
+    "price": 30
+   },
+   "active": true,
+   "created_at": "2026-08-28T21:19:27+00:00"
   },
   {
    "seq": 58,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1196,
-    "team": "Borussia Merenda",
-    "price": 34
+    "player_id": 1389,
+    "team": "Sporting Ammonito",
+    "price": 18
    },
    "active": true,
-   "created_at": "2026-08-28T21:22:22+00:00"
+   "created_at": "2026-08-28T21:19:51+00:00"
   },
   {
    "seq": 59,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1412,
+    "player_id": 1029,
     "team": "Real Panchina",
-    "price": 38
+    "price": 14
    },
    "active": true,
-   "created_at": "2026-08-28T21:23:18+00:00"
+   "created_at": "2026-08-28T21:20:33+00:00"
   },
   {
    "seq": 60,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1292,
-    "team": "Sporting Ammonito",
-    "price": 24
+    "player_id": 1414,
+    "team": "Olympique Recupero",
+    "price": 19
    },
    "active": true,
-   "created_at": "2026-08-28T21:24:07+00:00"
+   "created_at": "2026-08-28T21:21:01+00:00"
   },
   {
    "seq": 61,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1244,
-    "team": "Bayer Contropiede",
-    "price": 37
+    "player_id": 1198,
+    "team": "Borussia Merenda",
+    "price": 18
    },
    "active": true,
-   "created_at": "2026-08-28T21:25:01+00:00"
+   "created_at": "2026-08-28T21:21:23+00:00"
   },
   {
    "seq": 62,
-   "type": "PLAYER_ASSIGNED",
+   "type": "PLAYER_SKIPPED",
    "payload": {
-    "player_id": 1293,
-    "team": "Atletico Divano",
-    "price": 26
+    "player_id": 1222
    },
    "active": true,
-   "created_at": "2026-08-28T21:25:31+00:00"
+   "created_at": "2026-08-28T21:21:54+00:00"
   },
   {
    "seq": 63,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1053,
+    "player_id": 1368,
     "team": "Deportivo Rinvio",
-    "price": 29
+    "price": 9
    },
    "active": true,
-   "created_at": "2026-08-28T21:26:50+00:00"
+   "created_at": "2026-08-28T21:23:22+00:00"
   },
   {
    "seq": 64,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1005,
-    "team": "Olympique Recupero",
-    "price": 22
+    "player_id": 1440,
+    "team": "Union Fuorigioco",
+    "price": 9
    },
    "active": true,
-   "created_at": "2026-08-28T21:27:54+00:00"
+   "created_at": "2026-08-28T21:24:10+00:00"
   },
   {
    "seq": 65,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1413,
-    "team": "Union Fuorigioco",
-    "price": 30
+    "player_id": 1417,
+    "team": "Bayer Contropiede",
+    "price": 5
    },
    "active": true,
-   "created_at": "2026-08-28T21:29:12+00:00"
+   "created_at": "2026-08-28T21:24:47+00:00"
   },
   {
    "seq": 66,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1246,
-    "team": "Borussia Merenda",
-    "price": 21
+    "player_id": 1130,
+    "team": "Atletico Divano",
+    "price": 4
    },
    "active": true,
-   "created_at": "2026-08-28T21:30:07+00:00"
+   "created_at": "2026-08-28T21:25:37+00:00"
   },
   {
    "seq": 67,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1390,
-    "team": "Sporting Ammonito",
-    "price": 20
+    "player_id": 1178,
+    "team": "Bayer Contropiede",
+    "price": 3
    },
    "active": true,
-   "created_at": "2026-08-28T21:31:35+00:00"
+   "created_at": "2026-08-28T21:26:04+00:00"
   },
   {
    "seq": 68,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1248,
+    "player_id": 1227,
     "team": "Real Panchina",
-    "price": 6
+    "price": 1
    },
    "active": true,
-   "created_at": "2026-08-28T21:32:15+00:00"
+   "created_at": "2026-08-28T21:27:05+00:00"
   },
   {
    "seq": 69,
-   "type": "PLAYER_SKIPPED",
+   "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1200
+    "player_id": 1011,
+    "team": "Deportivo Rinvio",
+    "price": 1
    },
    "active": true,
-   "created_at": "2026-08-28T21:33:35+00:00"
+   "created_at": "2026-08-28T21:28:01+00:00"
   },
   {
    "seq": 70,
-   "type": "PLAYER_ASSIGNED",
+   "type": "PLAYER_SKIPPED",
    "payload": {
-    "player_id": 1272,
-    "team": "Olympique Recupero",
-    "price": 5
+    "player_id": 1131
    },
    "active": true,
-   "created_at": "2026-08-28T21:34:22+00:00"
+   "created_at": "2026-08-28T21:29:14+00:00"
   },
   {
    "seq": 71,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1344,
-    "team": "Atletico Divano",
-    "price": 6
+    "player_id": 1347,
+    "team": "Union Fuorigioco",
+    "price": 1
    },
    "active": true,
-   "created_at": "2026-08-28T21:34:49+00:00"
+   "created_at": "2026-08-28T21:30:34+00:00"
   },
   {
    "seq": 72,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1321,
-    "team": "Deportivo Rinvio",
-    "price": 5
-   },
-   "active": true,
-   "created_at": "2026-08-28T21:35:13+00:00"
-  },
-  {
-   "seq": 73,
-   "type": "PLAYER_ASSIGNED",
-   "payload": {
-    "player_id": 1394,
-    "team": "Bayer Contropiede",
+    "player_id": 1059,
+    "team": "Sporting Ammonito",
     "price": 2
    },
    "active": true,
-   "created_at": "2026-08-28T21:35:55+00:00"
+   "created_at": "2026-08-28T21:31:47+00:00"
+  },
+  {
+   "seq": 73,
+   "type": "LETTER_DRAWN",
+   "payload": {
+    "role": "D",
+    "letter": "F",
+    "seed": 72560
+   },
+   "active": true,
+   "created_at": "2026-08-28T21:32:35+00:00"
   },
   {
    "seq": 74,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1034,
-    "team": "Union Fuorigioco",
-    "price": 3
+    "player_id": 1100,
+    "team": "Olympique Recupero",
+    "price": 37
    },
    "active": true,
-   "created_at": "2026-08-28T21:36:23+00:00"
+   "created_at": "2026-08-28T21:33:42+00:00"
   },
   {
    "seq": 75,
    "type": "PLAYER_ASSIGNED",
    "payload": {
-    "player_id": 1371,
-    "team": "Real Panchina",
-    "price": 1
+    "player_id": 1437,
+    "team": "Borussia Merenda",
+    "price": 29
    },
-   "active": false,
-   "created_at": "2026-08-28T21:36:45+00:00"
+   "active": true,
+   "created_at": "2026-08-28T21:35:00+00:00"
   },
   {
    "seq": 76,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1102,
+    "team": "Atletico Divano",
+    "price": 23
+   },
+   "active": true,
+   "created_at": "2026-08-28T21:36:15+00:00"
+  },
+  {
+   "seq": 77,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1201,
+    "team": "Real Panchina",
+    "price": 7
+   },
+   "active": true,
+   "created_at": "2026-08-28T21:37:33+00:00"
+  },
+  {
+   "seq": 78,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1225,
+    "team": "Bayer Contropiede",
+    "price": 4
+   },
+   "active": true,
+   "created_at": "2026-08-28T21:38:01+00:00"
+  },
+  {
+   "seq": 79,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1297,
+    "team": "Deportivo Rinvio",
+    "price": 4
+   },
+   "active": true,
+   "created_at": "2026-08-28T21:39:23+00:00"
+  },
+  {
+   "seq": 80,
+   "type": "PLAYER_ASSIGNED",
+   "payload": {
+    "player_id": 1010,
+    "team": "Union Fuorigioco",
+    "price": 2
+   },
+   "active": false,
+   "created_at": "2026-08-28T21:40:41+00:00"
+  },
+  {
+   "seq": 81,
    "type": "LETTER_DRAWN",
    "payload": {
     "role": "D",
-    "letter": "O",
-    "seed": 103895
+    "letter": "P",
+    "seed": 507253
    },
    "active": true,
-   "created_at": "2026-08-28T21:37:16+00:00"
+   "created_at": "2026-08-28T21:41:32+00:00"
   }
  ]
 }
