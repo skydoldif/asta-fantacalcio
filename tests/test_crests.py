@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from asta.ui import crests
+from conftest import servono_gli_stemmi
 
 
 @pytest.fixture
@@ -92,8 +93,13 @@ def test_logo_della_lega_assente(cartella):
     assert crests.league_logo_url() is None
 
 
+@servono_gli_stemmi
 def test_gli_stemmi_veri_ci_sono_tutti(real_listone):
-    """Regressione: se qualcuno cancella o rinomina un file, si vede qui."""
+    """Regressione: se qualcuno cancella o rinomina un file, si vede qui.
+
+    Vuole **entrambe** le cose: senza stemmi mancherebbero tutti, e non
+    sarebbe una regressione ma una cartella vuota.
+    """
     crests._index.cache_clear()
     mancanti = sorted({p.team for p in real_listone.players if crests.crest_url(p.team) is None})
     assert mancanti == []
