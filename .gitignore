@@ -34,3 +34,7 @@ static/loghi/*
 !static/loghi/README.md
 static/audio/*
 !static/audio/README.md
+
+# Il branch della demo: questi tre sono inventati, non sono dati di nessuno.
+!data/players_2026_27.json
+!data/griglia_portieri_2026_27.json
