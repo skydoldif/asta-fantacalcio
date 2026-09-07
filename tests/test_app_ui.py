@@ -120,6 +120,9 @@ def test_la_pagina_admin_si_apre_senza_errori(admin):
     # qui resta solo quello che serve a condurre l'asta.
     assert [t.label for t in admin.tabs] == [
         "🎯 Asta",
+        # Il listone ha una scheda sua: si prepara in piu' riprese, in giorni
+        # diversi, ed e' un lavoro distinto dal decidere le regole della serata.
+        "📥 Listone",
         "⚙️ Impostazioni",
         "📋 Rose e correzioni",
         "📤 Export",

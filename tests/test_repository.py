@@ -58,10 +58,11 @@ def _cancella_listone(repo: PostgresRepository) -> None:
     from sqlalchemy import text
 
     with repo._engine.begin() as conn:  # type: ignore[attr-defined]
-        conn.execute(
-            text("DELETE FROM auction_listone WHERE auction_id = :aid"),
-            {"aid": repo._auction_id},
-        )
+        for tabella in ("auction_listone", "auction_listone_file"):
+            conn.execute(
+                text(f"DELETE FROM {tabella} WHERE auction_id = :aid"),
+                {"aid": repo._auction_id},
+            )
 
 
 @pytest.fixture(params=["memoria", "postgres"])
@@ -182,6 +183,67 @@ def test_il_listone_non_e_un_evento_dell_asta(repo):
     repo.reset()
     assert repo.load() == []
     assert repo.load_listone() is not None, "azzerando l'asta il listone resta"
+
+
+# ------------------------------------------------- i file sorgente del listone
+
+
+def test_senza_file_caricati_l_archivio_e_vuoto(repo):
+    assert repo.load_listone_files() == {}
+
+
+def test_un_file_fa_il_giro_intero_byte_per_byte(repo):
+    """Sono byte di un Excel: se il giro li altera, il listone non si rigenera."""
+    contenuto = bytes(range(256)) * 4
+    repo.save_listone_file("xlsx_path", "Quotazioni_2026_27.xlsx", contenuto)
+    assert repo.load_listone_files() == {"xlsx_path": ("Quotazioni_2026_27.xlsx", contenuto)}
+
+
+def test_le_caselle_si_riempiono_una_per_volta(repo):
+    """Il caso vero: le quotazioni oggi, le statistiche domani."""
+    repo.save_listone_file("xlsx_path", "Quotazioni.xlsx", b"quotazioni")
+    repo.save_listone_file("stats_path", "Statistiche.xlsx", b"statistiche")
+
+    caselle = repo.load_listone_files()
+    assert set(caselle) == {"xlsx_path", "stats_path"}
+    assert caselle["xlsx_path"] == ("Quotazioni.xlsx", b"quotazioni")
+
+
+def test_ricaricare_la_stessa_casella_sostituisce(repo):
+    repo.save_listone_file("stats_path", "vecchie.xlsx", b"vecchio")
+    repo.save_listone_file("stats_path", "nuove.xlsx", b"nuovo")
+
+    caselle = repo.load_listone_files()
+    assert len(caselle) == 1
+    assert caselle["stats_path"] == ("nuove.xlsx", b"nuovo")
+
+
+def test_una_casella_si_puo_svuotare(repo):
+    repo.save_listone_file("stats_path", "Statistiche.xlsx", b"x")
+    repo.delete_listone_file("stats_path")
+    assert repo.load_listone_files() == {}
+    # Svuotarne una gia' vuota non deve rompere niente.
+    repo.delete_listone_file("stats_path")
+
+
+def test_azzerare_l_asta_non_porta_via_i_file(repo):
+    """Ricominciare l'asta non deve costringere a ricaricare il listone."""
+    repo.save_listone_file("xlsx_path", "Quotazioni.xlsx", b"x")
+    repo.append(evento(1))
+    repo.reset()
+
+    assert repo.load() == []
+    assert set(repo.load_listone_files()) == {"xlsx_path"}
+
+
+def test_i_file_sono_di_una_sola_asta(postgres):
+    altra = PostgresRepository(postgres._engine, auction_id=f"test-{uuid.uuid4().hex[:8]}")
+    postgres.save_listone_file("xlsx_path", "Quotazioni.xlsx", b"x")
+    try:
+        assert altra.load_listone_files() == {}
+    finally:
+        altra.reset()
+        _cancella_listone(altra)
 
 
 def test_il_listone_e_di_una_sola_asta(postgres):

@@ -1,7 +1,8 @@
 """Vista admin: l'unica che puo' modificare l'asta.
 
 E' protetta da password (``admin_password`` nei secrets) e organizzata in
-quattro schede: conduzione dell'asta, impostazioni, rose e correzioni, export.
+cinque schede: conduzione dell'asta, listone, impostazioni, rose e correzioni,
+export.
 """
 
 from __future__ import annotations
@@ -61,7 +62,14 @@ from asta.ui.components import (
     phase_banner,
     player_card,
 )
-from asta.ui.upload import OBBLIGATORIO, costruisci, etichette, smista
+from asta.ui.upload import (
+    OBBLIGATORIO,
+    Caselle,
+    costruisci_da_caselle,
+    etichette,
+    smista,
+    unisci,
+)
 from asta.ui.wiring import (
     aggiorna_il_listone,
     get_listone,
@@ -132,11 +140,13 @@ def render() -> None:
     state = service.state()
     auto_backup(service, state)
 
-    asta, impostazioni, rose, export = st.tabs(
-        ["🎯 Asta", "⚙️ Impostazioni", "📋 Rose e correzioni", "📤 Export"]
+    asta, listone, impostazioni, rose, export = st.tabs(
+        ["🎯 Asta", "📥 Listone", "⚙️ Impostazioni", "📋 Rose e correzioni", "📤 Export"]
     )
     with asta:
         _auction_tab(service, state)
+    with listone:
+        _listone_tab(service, state)
     with impostazioni:
         _settings_tab(service, state)
     with rose:
@@ -465,63 +475,152 @@ FORMATI_LISTONE = ["xlsx", "md", "txt"]
 ESITO_CARICAMENTO = "esito_caricamento_listone"
 
 
-def _carica_listone(service: AuctionService, state: AuctionState) -> None:
-    """Pannello per generare il listone dai file, senza Python ne' terminale.
+def _listone_tab(service: AuctionService, state: AuctionState) -> None:
+    """Scheda del listone: cosa c'e' dentro, e come cambiarlo.
 
-    Sta chiuso quando un listone c'e' gia': e' un'operazione che si fa una
-    volta a stagione, e aperta ruberebbe lo schermo alle impostazioni, che
-    invece si toccano ogni volta.
+    Ha una scheda sua e non un riquadro dentro le impostazioni perche' sono
+    due cose diverse: qui si prepara il materiale, di la' si decidono le
+    regole della serata. E preparare il materiale non si fa in una volta
+    sola - le quotazioni escono a luglio, le probabili formazioni la
+    settimana prima - quindi questa pagina si riapre piu' volte.
     """
+    esito = st.session_state.pop(ESITO_CARICAMENTO, None)
+    if esito is not None:
+        _mostra_esito(esito)
+
+    _listone_caricato(state)
+
     if state.has_activity:
+        st.warning(
+            "L'asta e' gia' iniziata: il listone non si tocca piu'. Le aggiudicazioni "
+            "gia' fatte puntano a questi calciatori, e cambiarli sotto renderebbe "
+            "l'asta incoerente. Per ricominciare, azzera l'asta dalla scheda Export."
+        )
         return
 
-    esito = st.session_state.pop(ESITO_CARICAMENTO, None)
-    with st.expander("📥 Carica il listone", expanded=not state.listone.players or bool(esito)):
-        if esito is not None:
-            _mostra_esito(esito)
-        st.caption(
-            "Trascina qui i file e basta: non serve Python ne' il terminale. "
-            "Obbligatorio solo il listone ufficiale scaricato da fantacalcio.it "
-            f"(`{XLSX_GLOB}`); statistiche e articoli sono facoltativi e si "
-            "riconoscono dal nome del file."
+    caselle = _caselle_caricate()
+    st.divider()
+    _cosa_c_e_gia(caselle)
+    st.divider()
+    _aggiungi_file(service, caselle)
+
+
+def _caselle_caricate() -> Caselle:
+    """I file gia' in archivio; vuoto se il database non risponde."""
+    try:
+        return get_repository().load_listone_files()
+    except Exception:
+        return {}
+
+
+def _cosa_c_e_gia(caselle: Caselle) -> None:
+    """Elenco delle caselle, piene e vuote, con il modo di svuotarle."""
+    st.subheader("Cosa hai gia' caricato")
+    nomi = etichette()
+    st.dataframe(
+        pd.DataFrame(
+            [
+                {
+                    "Cosa": nomi[casella],
+                    "File": caselle[casella][0] if casella in caselle else "—",
+                    "": "✅"
+                    if casella in caselle
+                    else ("obbligatorio" if casella == OBBLIGATORIO else ""),
+                }
+                for casella in nomi
+            ]
+        ),
+        hide_index=True,
+        width="stretch",
+    )
+
+    togliibili = [c for c in caselle if c != OBBLIGATORIO]
+    if not togliibili:
+        return
+    col1, col2 = st.columns([3, 1], vertical_alignment="bottom")
+    quale = col1.selectbox(
+        "Togli un file",
+        togliibili,
+        format_func=lambda c: f"{nomi[c]} — {caselle[c][0]}",
+        index=None,
+        placeholder="Scegli cosa togliere...",
+        key="togli_casella",
+    )
+    if quale is not None and col2.button("🗑️ Togli", width="stretch"):
+        get_repository().delete_listone_file(quale)
+        _rigenera(dict(get_repository().load_listone_files()))
+
+
+def _aggiungi_file(service: AuctionService, caselle: Caselle) -> None:
+    """Caricamento di file nuovi, che si sommano a quelli gia' presenti."""
+    st.subheader("Aggiungi o sostituisci")
+    st.caption(
+        "Trascina qui i file e basta: non serve Python ne' il terminale. Puoi "
+        "farlo in piu' volte - le quotazioni oggi, le probabili formazioni la "
+        f"settimana prima dell'asta. L'unico indispensabile e' `{XLSX_GLOB}`, "
+        "e ogni file si riconosce dal nome."
+    )
+    caricati = st.file_uploader(
+        "File del listone",
+        type=FORMATI_LISTONE,
+        accept_multiple_files=True,
+        key="upload_listone",
+        label_visibility="collapsed",
+    )
+    if not caricati:
+        return
+
+    contenuti = {f.name: f.getvalue() for f in caricati}
+    scelti, ignorati = smista(list(contenuti))
+    nomi = etichette()
+    # Cosa succedera' *prima* di premere: un nome sbagliato si vede qui, non
+    # a meta' asta con la colonna delle fasce vuota.
+    st.dataframe(
+        pd.DataFrame(
+            [
+                {
+                    "File": nome,
+                    "Riconosciuto come": nomi[dove],
+                    "": "sostituisce" if dove in caselle else "nuovo",
+                }
+                for dove, nome in scelti.items()
+            ]
+            + [{"File": nome, "Riconosciuto come": "— ignorato", "": ""} for nome in ignorati]
+        ),
+        hide_index=True,
+        width="stretch",
+    )
+
+    unite = unisci(caselle, contenuti)
+    if OBBLIGATORIO not in unite:
+        st.error(
+            f"Manca il listone ufficiale: serve un file `{XLSX_GLOB}`, adesso o "
+            "in un caricamento precedente."
         )
-        caricati = st.file_uploader(
-            "File del listone",
-            type=FORMATI_LISTONE,
-            accept_multiple_files=True,
-            key="upload_listone",
-            label_visibility="collapsed",
-        )
-        if not caricati:
-            return
+        return
 
-        contenuti = {f.name: f.getvalue() for f in caricati}
-        scelti, ignorati = smista(list(contenuti))
-        nomi = etichette()
-        # Cosa succedera' *prima* di premere: un nome sbagliato si vede qui,
-        # non a meta' asta con la colonna delle fasce vuota.
-        st.dataframe(
-            pd.DataFrame(
-                [{"File": nome, "Riconosciuto come": nomi[dove]} for dove, nome in scelti.items()]
-                + [{"File": nome, "Riconosciuto come": "— ignorato"} for nome in ignorati]
-            ),
-            hide_index=True,
-            width="stretch",
-        )
-        if OBBLIGATORIO not in scelti:
-            st.error(f"Manca il listone ufficiale: serve un file `{XLSX_GLOB}`.")
-            return
-
-        if st.button("⚙️ Genera il listone", type="primary"):
-            _genera_listone(service, contenuti)
+    if st.button("⚙️ Genera il listone", type="primary"):
+        _rigenera(unite, contenuti)
 
 
-def _genera_listone(service: AuctionService, contenuti: dict[str, bytes]) -> None:
-    """Costruisce il listone, lo salva e fa dimenticare quello vecchio."""
+def _rigenera(caselle: Caselle, appena_caricati: dict[str, bytes] | None = None) -> None:
+    """Ricostruisce il listone da tutte le caselle e lo salva.
+
+    Si rigenera **sempre da capo**, da tutti i file: e' l'unico modo perche'
+    caricare le statistiche il giorno dopo dia lo stesso listone che si
+    otterrebbe caricando tutto insieme.
+    """
+    if OBBLIGATORIO not in caselle:
+        st.error(f"Senza un file `{XLSX_GLOB}` non c'e' niente da generare.")
+        return
     try:
         with st.spinner("Leggo i file e aggancio i nomi..."):
-            payload, segnalazioni, _ = costruisci(contenuti)
-            get_repository().save_listone(payload)
+            payload, segnalazioni = costruisci_da_caselle(caselle)
+            repo = get_repository()
+            for casella, (nome, contenuto) in caselle.items():
+                if appena_caricati is None or nome in appena_caricati:
+                    repo.save_listone_file(casella, nome, contenuto)
+            repo.save_listone(payload)
     except ValueError as exc:
         st.error(str(exc))
         return
@@ -529,7 +628,7 @@ def _genera_listone(service: AuctionService, contenuti: dict[str, bytes]) -> Non
         st.error(f"Non sono riuscito a leggere i file: {exc}")
         return
 
-    aggiorna_il_listone(service)
+    aggiorna_il_listone(get_service())
     # L'esito passa dalla sessione perche' subito dopo c'e' un rerun, e il
     # rerun butta via tutto quello che si e' appena disegnato: scriverlo qui
     # vorrebbe dire non mostrarlo mai. Il rerun serve lo stesso, altrimenti
@@ -558,7 +657,6 @@ def _settings_tab(service: AuctionService, state: AuctionState) -> None:
     """Configurazione dell'asta, modificabile finche' non si e' iniziato."""
     corrente = state.settings
     _listone_caricato(state)
-    _carica_listone(service, state)
     bloccata = state.has_activity
     if bloccata:
         st.warning(

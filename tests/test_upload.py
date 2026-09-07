@@ -14,7 +14,14 @@ import pytest
 from scripts.build_players import RAW_DIR, build_payload, find_xlsx
 
 from asta.data.players import DEFAULT_PLAYERS_PATH
-from asta.ui.upload import OBBLIGATORIO, costruisci, etichette, smista
+from asta.ui.upload import (
+    OBBLIGATORIO,
+    costruisci,
+    costruisci_da_caselle,
+    etichette,
+    smista,
+    unisci,
+)
 from conftest import serve_il_listone
 
 QUOTAZIONI = "Quotazioni_Fantacalcio_Stagione_2026_27.xlsx"
@@ -130,3 +137,62 @@ def test_le_segnalazioni_sono_quelle_dello_script():
         },
     )
     assert dall_app == da_script
+
+
+# --------------------------------------------------- caricamento a piu' riprese
+
+
+def test_i_file_nuovi_si_sommano_a_quelli_vecchi():
+    gia = {OBBLIGATORIO: (QUOTAZIONI, b"vecchio xlsx")}
+    unite = unisci(gia, {"attaccanti.md": b"fasce"})
+
+    assert unite[OBBLIGATORIO] == (QUOTAZIONI, b"vecchio xlsx"), "le quotazioni non si toccano"
+    assert unite["tiers_A"] == ("attaccanti.md", b"fasce")
+
+
+def test_un_file_nella_stessa_casella_prende_il_posto_del_vecchio():
+    gia = {"tiers_A": ("attaccanti.md", b"vecchio")}
+    unite = unisci(gia, {"attaccanti.md": b"nuovo"})
+
+    assert unite["tiers_A"] == ("attaccanti.md", b"nuovo")
+    assert len(unite) == 1, "non deve restare anche il vecchio"
+
+
+def test_un_file_ignorato_non_sporca_le_caselle():
+    gia = {OBBLIGATORIO: (QUOTAZIONI, b"x")}
+    assert unisci(gia, {"appunti.md": b"niente"}) == gia
+
+
+@serve_il_listone
+def test_caricare_in_due_volte_da_lo_stesso_listone_di_una_volta_sola():
+    """La proprieta' che rende sicuro il caricamento a pezzi.
+
+    Chi carica le quotazioni oggi e tutto il resto domani deve ottenere
+    esattamente il listone di chi ha caricato tutto insieme. Vale perche' si
+    rigenera sempre da capo dall'insieme completo, invece di rattoppare
+    quello gia' fatto.
+    """
+    tutti = {p.name: p.read_bytes() for p in RAW_DIR.iterdir() if p.suffix in {".xlsx", ".md"}}
+    in_una_volta, _ = costruisci_da_caselle(unisci({}, tutti))
+
+    xlsx = find_xlsx(RAW_DIR)
+    primo_giorno = unisci({}, {xlsx.name: xlsx.read_bytes()})
+    secondo_giorno = unisci(primo_giorno, {n: c for n, c in tutti.items() if n != xlsx.name})
+    in_due_volte, _ = costruisci_da_caselle(secondo_giorno)
+
+    assert in_due_volte == in_una_volta
+
+
+@serve_il_listone
+def test_il_primo_giorno_basta_il_solo_xlsx():
+    xlsx = find_xlsx(RAW_DIR)
+    caselle = unisci({}, {xlsx.name: xlsx.read_bytes()})
+    payload, _ = costruisci_da_caselle(caselle)
+
+    assert payload["count"] > 0
+    assert "tiers" not in payload, "senza articoli non ci sono fasce"
+
+
+def test_senza_il_listone_ufficiale_non_si_genera_nemmeno_a_pezzi():
+    with pytest.raises(ValueError, match="listone ufficiale"):
+        costruisci_da_caselle({"tiers_A": ("attaccanti.md", b"fasce")})

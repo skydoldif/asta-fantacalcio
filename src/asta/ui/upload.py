@@ -79,22 +79,45 @@ def etichette() -> dict[str, str]:
     return {destinazione: etichetta for _, destinazione, etichetta in DESTINAZIONI}
 
 
-def costruisci(files: Mapping[str, bytes]) -> tuple[dict[str, Any], list[str], dict[str, str]]:
-    """Genera il listone dai file caricati.
+#: I file gia' caricati: ``casella -> (nome del file, contenuto)``.
+Caselle = dict[str, tuple[str, bytes]]
+
+
+def unisci(gia_presenti: Mapping[str, tuple[str, bytes]], nuovi: Mapping[str, bytes]) -> Caselle:
+    """Mette i file appena caricati sopra quelli gia' in archivio.
+
+    Chi carica le quotazioni oggi e le statistiche domani non deve ricaricare
+    tutto: le caselle non toccate restano quelle di prima, e il listone si
+    rigenera comunque dall'insieme completo. Un file nuovo nella stessa
+    casella prende il posto del vecchio.
 
     Args:
-        files: nome del file -> contenuto.
+        gia_presenti: quello che c'e' in archivio.
+        nuovi: i file appena caricati, ``nome -> contenuto``.
 
     Returns:
-        ``(payload, segnalazioni, smistamento)``: il listone da salvare, i nomi
-        che lo script non e' riuscito ad agganciare con sicurezza, e cosa ha
-        fatto di ogni file.
+        Le caselle risultanti.
+    """
+    scelti, _ = smista(list(nuovi))
+    unite: Caselle = dict(gia_presenti)
+    for casella, nome in scelti.items():
+        unite[casella] = (nome, nuovi[nome])
+    return unite
+
+
+def costruisci_da_caselle(
+    caselle: Mapping[str, tuple[str, bytes]],
+) -> tuple[dict[str, Any], list[str]]:
+    """Genera il listone da file gia' smistati.
+
+    Returns:
+        Il listone da salvare e i nomi che lo script non ha saputo agganciare
+        con sicurezza.
 
     Raises:
         ValueError: se manca il listone ufficiale, l'unico indispensabile.
     """
-    scelti, _ = smista(list(files))
-    if OBBLIGATORIO not in scelti:
+    if OBBLIGATORIO not in caselle:
         raise ValueError(
             f"Manca il listone ufficiale (un file `{bp.XLSX_GLOB}`): senza quello "
             "non c'e' niente da generare."
@@ -103,17 +126,33 @@ def costruisci(files: Mapping[str, bytes]) -> tuple[dict[str, Any], list[str], d
     with tempfile.TemporaryDirectory(prefix="listone-") as cartella:
         radice = Path(cartella)
         percorsi: dict[str, Path] = {}
-        for destinazione, nome in scelti.items():
+        for casella, (nome, contenuto) in caselle.items():
             # ``Path(nome).name`` e non ``nome``: il nome arriva dal browser, e
             # un "../" ci scriverebbe fuori dalla cartella temporanea.
             percorso = radice / Path(nome).name
-            percorso.write_bytes(files[nome])
-            percorsi[destinazione] = percorso
+            percorso.write_bytes(contenuto)
+            percorsi[casella] = percorso
 
         fasce = {
             ruolo: percorsi[f"tiers_{ruolo}"] for ruolo in "DCA" if f"tiers_{ruolo}" in percorsi
         }
         argomenti = {k: v for k, v in percorsi.items() if not k.startswith("tiers_")}
-        payload, segnalazioni = bp.build_payload(tiers_paths=fasce or None, **argomenti)
+        return bp.build_payload(tiers_paths=fasce or None, **argomenti)
 
-    return payload, segnalazioni, scelti
+
+def costruisci(files: Mapping[str, bytes]) -> tuple[dict[str, Any], list[str], dict[str, str]]:
+    """Genera il listone da un caricamento unico, smistando per nome.
+
+    Args:
+        files: nome del file -> contenuto.
+
+    Returns:
+        ``(payload, segnalazioni, smistamento)``: il listone da salvare, i nomi
+        dubbi, e cosa ha fatto di ogni file.
+
+    Raises:
+        ValueError: se manca il listone ufficiale.
+    """
+    caselle = unisci({}, files)
+    payload, segnalazioni = costruisci_da_caselle(caselle)
+    return payload, segnalazioni, {c: nome for c, (nome, _) in caselle.items()}

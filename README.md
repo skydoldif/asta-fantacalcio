@@ -57,9 +57,9 @@ statistiche sono di fantacalcio.it, le fasce d'asta e le gerarchie in porta veng
 articoli di chi le ha scritte, gli stemmi sono marchi dei club. Nessuna di queste cose è mia
 da regalare. Il codice sì.
 
-**Si caricano dall'app**, in *Gestione asta → Impostazioni → Carica il listone*: trascini i
-file e basta. Niente Python, niente terminale, niente commit — restano nel tuo database e non
-passano mai da GitHub.
+**Si caricano dall'app**, in *Gestione asta → **Listone***: trascini i file e basta. Niente
+Python, niente terminale, niente commit — restano nel tuo database e non passano mai da
+GitHub. E non devi averli tutti insieme: carica quello che hai, torna quando hai il resto.
 
 | Cosa | Da dove arriva |
 |---|---|

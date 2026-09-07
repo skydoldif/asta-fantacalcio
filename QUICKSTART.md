@@ -58,7 +58,7 @@ La tabella non devi crearla: l'app se la fa da sola al primo avvio.
 Scarica da [fantacalcio.it](https://www.fantacalcio.it) il file delle **Quotazioni**
 (`Quotazioni_Fantacalcio_Stagione_….xlsx`). Poi, nella tua app:
 
-**Gestione asta → Impostazioni → Carica il listone** → trascina il file → *Genera il listone*.
+**Gestione asta → Listone** → trascina il file → *Genera il listone*.
 
 Fatto: 500 e passa calciatori pronti.
 
@@ -66,6 +66,10 @@ Vuoi anche fasce d'asta, probabili formazioni e gerarchie in porta? Incolla ognu
 articoli in un file di testo, chiamalo come dice il
 [README](README.md#i-dati-che-devi-procurarti), e trascina anche quelli. Sono tutti
 facoltativi: senza, sparisce solo quella colonna.
+
+**Non devi averli tutti adesso.** Torna in quella scheda quando vuoi e aggiungi quello che
+ti manca: le quotazioni escono a luglio, le probabili formazioni la settimana prima
+dell'asta. Quello che hai già caricato resta dov'è, e il listone si rigenera da solo.
 
 ## 5. Configura l'asta · 2 minuti
 

@@ -65,6 +65,25 @@ class AuctionRepository(Protocol):
         """Sostituisce il listone. Ce n'e' uno solo per asta."""
         ...
 
+    def load_listone_files(self) -> dict[str, tuple[str, bytes]]:
+        """I file da cui e' stato generato il listone: ``casella -> (nome, contenuto)``.
+
+        Si tengono da parte perche' il listone si costruisce **tutto insieme**,
+        da tutti i file, ma non e' detto che arrivino tutti insieme: uno carica
+        le quotazioni oggi e le statistiche domani. Rigenerare ogni volta
+        dall'insieme completo da' lo stesso risultato di un caricamento unico,
+        mentre rattoppare il listone gia' fatto no.
+        """
+        ...
+
+    def save_listone_file(self, casella: str, nome: str, contenuto: bytes) -> None:
+        """Mette un file nella sua casella, al posto di quello che c'era."""
+        ...
+
+    def delete_listone_file(self, casella: str) -> None:
+        """Toglie il file da una casella. Innocuo se era gia' vuota."""
+        ...
+
 
 class InMemoryRepository:
     """Repository in memoria, thread-safe. Usato dai test e in modalita demo."""
@@ -72,6 +91,7 @@ class InMemoryRepository:
     def __init__(self, events: list[Event] | None = None) -> None:
         self._events: dict[int, Event] = {e.seq: e for e in (events or [])}
         self._listone: dict[str, Any] | None = None
+        self._listone_files: dict[str, tuple[str, bytes]] = {}
         self._lock = threading.Lock()
 
     def load(self) -> list[Event]:
@@ -112,6 +132,18 @@ class InMemoryRepository:
     def save_listone(self, payload: dict[str, Any]) -> None:
         with self._lock:
             self._listone = payload
+
+    def load_listone_files(self) -> dict[str, tuple[str, bytes]]:
+        with self._lock:
+            return dict(self._listone_files)
+
+    def save_listone_file(self, casella: str, nome: str, contenuto: bytes) -> None:
+        with self._lock:
+            self._listone_files[casella] = (nome, contenuto)
+
+    def delete_listone_file(self, casella: str) -> None:
+        with self._lock:
+            self._listone_files.pop(casella, None)
 
 
 class PostgresRepository:
@@ -158,9 +190,22 @@ class PostgresRepository:
                 created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """
+        # I file sorgente, uno per casella: caricarne uno nuovo prende il
+        # posto del vecchio, e il listone si rigenera sempre da tutti.
+        ddl_files = """
+            CREATE TABLE IF NOT EXISTS auction_listone_file (
+                auction_id  TEXT        NOT NULL,
+                slot        TEXT        NOT NULL,
+                filename    TEXT        NOT NULL,
+                content     BYTEA       NOT NULL,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                PRIMARY KEY (auction_id, slot)
+            )
+        """
         with self._engine.begin() as conn:  # type: ignore[attr-defined]
             conn.execute(self._sql(ddl))
             conn.execute(self._sql(ddl_listone))
+            conn.execute(self._sql(ddl_files))
 
     def load_listone(self) -> dict[str, Any] | None:
         query = "SELECT payload FROM auction_listone WHERE auction_id = :aid"
@@ -185,6 +230,37 @@ class PostgresRepository:
                 self._sql(query),
                 {"aid": self._auction_id, "payload": json.dumps(payload, ensure_ascii=False)},
             )
+
+    def load_listone_files(self) -> dict[str, tuple[str, bytes]]:
+        query = "SELECT slot, filename, content FROM auction_listone_file WHERE auction_id = :aid"
+        with self._engine.connect() as conn:  # type: ignore[attr-defined]
+            righe = conn.execute(self._sql(query), {"aid": self._auction_id}).fetchall()
+        return {r[0]: (r[1], bytes(r[2])) for r in righe}
+
+    def save_listone_file(self, casella: str, nome: str, contenuto: bytes) -> None:
+        query = """
+            INSERT INTO auction_listone_file (auction_id, slot, filename, content)
+            VALUES (:aid, :slot, :nome, :contenuto)
+            ON CONFLICT (auction_id, slot) DO UPDATE
+                SET filename = EXCLUDED.filename,
+                    content = EXCLUDED.content,
+                    created_at = NOW()
+        """
+        with self._engine.begin() as conn:  # type: ignore[attr-defined]
+            conn.execute(
+                self._sql(query),
+                {
+                    "aid": self._auction_id,
+                    "slot": casella,
+                    "nome": nome,
+                    "contenuto": contenuto,
+                },
+            )
+
+    def delete_listone_file(self, casella: str) -> None:
+        query = "DELETE FROM auction_listone_file WHERE auction_id = :aid AND slot = :slot"
+        with self._engine.begin() as conn:  # type: ignore[attr-defined]
+            conn.execute(self._sql(query), {"aid": self._auction_id, "slot": casella})
 
     def load(self) -> list[Event]:
         query = """
