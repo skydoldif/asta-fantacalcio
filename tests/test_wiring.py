@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import pytest
@@ -9,7 +10,9 @@ import sqlalchemy
 import streamlit as st
 from streamlit.runtime.caching.cache_type import CacheType
 
+from asta.data.keepers import cached_keeper_grid
 from asta.ui import wiring
+from asta.ui.upload import GRIGLIA
 
 URL_FINTA = "postgresql+psycopg://utente:segreto@localhost:6543/db"
 
@@ -61,3 +64,71 @@ def test_il_log_non_passa_dalla_cache_che_serializza():
     questo il controllo e' sulla scelta della cache, non su un comportamento.
     """
     assert wiring._events_at._info.cache_type is CacheType.RESOURCE
+
+
+# ------------------------------------------------------- griglia dei portieri
+
+
+class _RepoConGriglia:
+    """Archivio finto: ha in casa solo la griglia."""
+
+    def __init__(self, contenuto: bytes) -> None:
+        self.contenuto = contenuto
+
+    def load_listone_files(self) -> dict[str, tuple[str, bytes]]:
+        return {GRIGLIA: ("griglia_portieri_2026_27.json", self.contenuto)}
+
+
+@pytest.fixture
+def senza_cache():
+    st.cache_resource.clear()
+    cached_keeper_grid.cache_clear()
+    yield
+    st.cache_resource.clear()
+    cached_keeper_grid.cache_clear()
+
+
+def test_la_griglia_caricata_dall_admin_arriva_alla_pagina(monkeypatch, senza_cache):
+    """L'ultimo dato che si poteva mettere solo committandolo nella repo.
+
+    Chi installa l'app da zero non ha nessun file in ``data/``: se la griglia
+    non passasse dall'archivio, la pagina Portieri resterebbe senza per sempre.
+    """
+    griglia = {
+        "teams": ["Atalanta", "Bologna"],
+        "values": [[0, 7], [7, 0]],
+        "highlight_from": 5,
+        "note": "dall'archivio",
+    }
+    monkeypatch.setattr(
+        wiring, "get_repository", lambda: _RepoConGriglia(json.dumps(griglia).encode("utf-8"))
+    )
+
+    percorso = wiring.griglia_path()
+
+    assert percorso is not None
+    assert cached_keeper_grid(percorso).teams == ("Atalanta", "Bologna")
+
+
+def test_senza_griglia_in_archivio_si_ricade_sul_file(monkeypatch, senza_cache):
+    """La repo di chi la griglia se l'e' trascritta continua a funzionare."""
+
+    class _Vuoto:
+        def load_listone_files(self) -> dict[str, tuple[str, bytes]]:
+            return {}
+
+    monkeypatch.setattr(wiring, "get_repository", _Vuoto)
+
+    assert wiring.griglia_path() is None
+
+
+def test_un_database_muto_non_fa_cadere_la_pagina_portieri(monkeypatch, senza_cache):
+    """Stessa scelta del listone: meglio senza griglia che una pagina bianca."""
+
+    class _Muto:
+        def load_listone_files(self) -> dict[str, tuple[str, bytes]]:
+            raise RuntimeError("connessione persa")
+
+    monkeypatch.setattr(wiring, "get_repository", _Muto)
+
+    assert wiring.griglia_path() is None

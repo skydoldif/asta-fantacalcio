@@ -32,6 +32,7 @@ from asta.domain.events import Event
 from asta.domain.models import Listone
 from asta.domain.reducer import AuctionState, build_state
 from asta.service import AuctionService
+from asta.ui.upload import GRIGLIA
 
 
 @st.cache_resource(show_spinner=False)
@@ -75,6 +76,34 @@ def listone_path() -> str | None:
         return None
 
 
+@st.cache_resource(show_spinner=False)
+def _griglia_scaricata(auction_id: str) -> str | None:
+    """Materializza su disco la griglia dei portieri caricata dall'admin.
+
+    ``None`` quando non ne e' stata caricata nessuna: si ricade sul file in
+    ``data/``, che e' il modo in cui funziona per chi la griglia se l'e'
+    trascritta e committata.
+
+    E' l'unico file dell'archivio che non entra nel listone: la pagina Portieri
+    la legge per conto suo, e ``build_payload`` non saprebbe cosa farsene.
+    """
+    voce = get_repository().load_listone_files().get(GRIGLIA)
+    if voce is None:
+        return None
+    _, contenuto = voce
+    percorso = Path(tempfile.gettempdir()) / f"griglia-{auction_id}.json"
+    percorso.write_bytes(contenuto)
+    return str(percorso)
+
+
+def griglia_path() -> str | None:
+    """Da dove leggere la griglia dei portieri: l'archivio, o il file in ``data/``."""
+    try:
+        return _griglia_scaricata(config.auction_id())
+    except Exception:
+        return None
+
+
 def get_listone() -> Listone:
     """Il listone, caricato una volta sola per processo.
 
@@ -110,6 +139,7 @@ def dimentica_il_listone() -> None:
     :func:`aggiorna_il_listone`, non questa.
     """
     _listone_scaricato.clear()
+    _griglia_scaricata.clear()
     _listone_committato.clear()
     for memoizzata in (cached_listone, cached_tiers, cached_lineups, cached_stats_season):
         memoizzata.cache_clear()

@@ -39,7 +39,7 @@ from asta.ui.keepers import (
     keepers_board,
     penalty_savers_board,
 )
-from asta.ui.wiring import listone_path, viewer_state
+from asta.ui.wiring import griglia_path, listone_path, viewer_state
 
 _ATTESA = "L'asta non e' ancora stata configurata. Attendi l'amministratore."
 
@@ -219,7 +219,7 @@ def keepers_page() -> None:
     )
     _keepers_live()
 
-    grid = cached_keeper_grid()
+    grid = cached_keeper_grid(griglia_path())
     if grid.teams:
         st.divider()
         st.subheader("Griglia delle coppie")

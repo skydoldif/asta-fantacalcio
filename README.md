@@ -63,12 +63,13 @@ GitHub. E non devi averli tutti insieme: carica quello che hai, torna quando hai
 
 | Cosa | Da dove arriva |
 |---|---|
-| **`Quotazioni_Fantacalcio_Stagione_AAAA_AA.xlsx`** | area download di [fantacalcio.it](https://www.fantacalcio.it), con il tuo account |
-| `Statistiche_Fantacalcio_Stagione_AAAA_AA.xlsx` | stessa area (c'è anche la versione *aggiuntive portieri*: se le carichi entrambe vince quella, che ha i gol subiti) |
+| **`Quotazioni_Fantacalcio_Stagione_AAAA_AA.xlsx`** | <https://www.fantacalcio.it/quotazioni-fantacalcio>, formato **Excel**, con il tuo account |
+| `Statistiche_Fantacalcio_Stagione_AAAA_AA.xlsx` | <https://www.fantacalcio.it/statistiche-serie-a> (c'è anche la versione *aggiuntive portieri*: se le carichi entrambe vince quella, che ha i gol subiti) |
 | `difensori.md` · `centrocampisti.md` · `attaccanti.md` | gli articoli sulle **fasce d'asta**, incollati in un file di testo. Io usavo quelli di [SOS Fanta](https://www.sosfanta.com) |
 | `probabili_formazioni.md` | l'articolo delle probabili formazioni |
 | `portieri.md` | l'articolo sulle gerarchie in porta |
 | `infortunati.md` · `rigoristi_*.md` · `corner_e_punizioni_*.md` | i rispettivi articoli |
+| `griglia_portieri_*.json` | la griglia delle coppie di portieri, trascritta a mano da un'immagine: vedi [La griglia delle coppie](#la-griglia-delle-coppie) |
 
 **Solo il primo è obbligatorio.** Tutto il resto è in più, e l'app è fatta per reggerne
 l'assenza: manca un file, sparisce quella colonna o quella pagina, e il resto funziona.
@@ -78,10 +79,12 @@ riconosciuto e cosa ha ignorato: un nome sbagliato si vede lì, non a metà asta
 che ogni articolo deve avere è descritto in [Aggiornare il listone](#aggiornare-il-listone),
 sezione per sezione — sono file di testo in cui incolli l'articolo, e lo script si arrangia.
 
-Restano due cose facoltative che l'app non sa ancora caricare da sola, e che vanno messe nella
-repo se le vuoi: gli **stemmi** in `static/loghi/` (vedi il suo
-[README](static/loghi/README.md)) e gli **audio** della Soundbar in `static/audio/` (idem).
-Senza, restano il nome scritto e nessuna Soundbar.
+Restano fuori dal caricamento solo i **file media**, che vanno messi nella repo se li vuoi:
+gli **stemmi** in `static/loghi/` — si scaricano da
+<https://football-logos.cc/italy/serie-a/>, istruzioni nel suo [README](static/loghi/README.md)
+— e gli **audio** della Soundbar in `static/audio/`, che si pescano per esempio da
+<https://www.myinstants.com/en/index/it/> (idem). Senza, restano il nome scritto e nessuna
+Soundbar.
 
 ## Come funziona
 
@@ -370,6 +373,11 @@ poche decine di byte.
 manca**: senza quello l'immagine non si ridimensiona. Le istruzioni complete stanno in
 [`static/loghi/README.md`](static/loghi/README.md).
 
+Un posto dove trovarli è <https://football-logos.cc/italy/serie-a/>. Sono i **marchi dei club**:
+il sito non ne rivendica la proprietà e ne consente l'uso da tifosi, editoriale e non
+commerciale — non su prodotti in vendita, e non in modo da far credere a una collaborazione
+ufficiale. Un'asta fra amici sta dalla parte buona di quel confine.
+
 ## La Soundbar
 
 Nella **barra laterale**, non su una pagina sua: si apre con la freccia in alto a sinistra da
@@ -382,6 +390,10 @@ che ne pesca uno a caso. Il titolo si ricava dal nome del file — la prima paro
 diventa l'etichetta verde — quindi per aggiungerne uno basta lasciarlo nella cartella giusta:
 le regole sono in [`static/audio/README.md`](static/audio/README.md).
 
+Gli audio te li metti tu: un posto comodo dove pescarli è
+<https://www.myinstants.com/en/index/it/>, che ha già i tormentoni italiani pronti da
+scaricare. Nella repo non ce n'è nessuno.
+
 Il suono parte **nel browser**, senza passare dal server: è l'unico modo perché sia immediato e
 perché funzioni sul telefono, dove un'esecuzione automatica dopo un giro di rete verrebbe
 bloccata. I file si scaricano solo alla pressione del pulsante, uno alla volta, e poi restano
@@ -390,6 +402,7 @@ in cache: chi non tocca la Soundbar non scarica nulla.
 ## Struttura del progetto
 
 ```
+├── CLAUDE.md                  # istruzioni per un assistente AI che apre la repo
 ├── app.py                     # entrypoint Streamlit (le quattro pagine)
 ├── data/
 │   ├── players_2026_27.json   # listone generato e committato (533 calciatori)
@@ -700,11 +713,32 @@ perde per strada su venti colonne. Nessun JavaScript: bastano `tr:hover` e
 una regola `:has()` per colonna, e dentro `st.markdown` gli script non verrebbero comunque
 eseguiti.
 
-La griglia è l'unico dato dell'app **trascritto a mano**, perché la fonte è un'immagine
-(`data/raw/griglia_portieri_2026_27.png`) e non un file leggibile. La trascrizione però si
-controlla da sola: la griglia è simmetrica, quindi le 190 coppie sono state lette due volte, e
-`test_keepers.py` verifica che ogni valore combaci con il suo speculare. Un numero letto male
-farebbe diventare rossa la suite.
+La griglia è l'unico dato dell'app **trascritto a mano**: la fonte è un'immagine, non un file
+leggibile. La trascrizione però si controlla da sola, perché la griglia è simmetrica — ogni
+coppia è stata scritta due volte, e le due scritture devono coincidere. Lo **stesso controllo
+gira al caricamento**: una coppia che non combacia col suo speculare viene detta subito, coi
+nomi delle due squadre. Senza quell'avviso l'unico segnale sarebbe un riquadro che non compare.
+
+Il file si carica da *Gestione asta → Listone* come tutti gli altri, purché si chiami
+`griglia_*.json`. Non entra nel listone — questa pagina la legge per conto suo — quindi
+caricarla non cambia una virgola dei calciatori.
+
+**Quasi sicuramente non ne avrai una, ed è normale**: sono 190 numeri da ricopiare da
+un'immagine, e la mia non posso dartela perché quei numeri sono l'analisi di qualcun altro. Se
+manca, la sezione semplicemente non compare e le gerarchie in porta restano. Se te la vuoi
+fare, la forma è questa:
+
+```json
+{
+  "teams": ["Atalanta", "Bologna", "..."],
+  "values": [[0, 7, 3], [7, 0, 5], [3, 5, 0]],
+  "highlight_from": 89,
+  "note": "una riga di spiegazione, mostrata sopra la griglia"
+}
+```
+
+`values` dev'essere quadrata quanto `teams`, simmetrica, con la diagonale a zero. I nomi delle
+squadre sono quelli del listone.
 
 ## Problemi frequenti
 

@@ -5,6 +5,10 @@ gratuiti — GitHub, Supabase, Streamlit — e il file del listone scaricato da 
 
 Il [README](README.md) spiega tutto il resto: leggilo dopo, non serve adesso.
 
+> **Se usi un assistente AI** (Claude Code o simili), aprigli questa cartella e digli
+> «aiutami a mettere in piedi l'asta»: nella repo c'è un [CLAUDE.md](CLAUDE.md) che lo mette
+> già al corrente di tutto, comprese le quattro cose su cui si incaglia chi parte da zero.
+
 ---
 
 ## 1. Fai una copia della repo · 2 minuti
@@ -55,8 +59,9 @@ La tabella non devi crearla: l'app se la fa da sola al primo avvio.
 
 ## 4. Carica il listone · 3 minuti
 
-Scarica da [fantacalcio.it](https://www.fantacalcio.it) il file delle **Quotazioni**
-(`Quotazioni_Fantacalcio_Stagione_….xlsx`). Poi, nella tua app:
+Scarica il file delle **Quotazioni** da
+<https://www.fantacalcio.it/quotazioni-fantacalcio> — formato **Excel**, e il nome che ti
+propone (`Quotazioni_Fantacalcio_Stagione_….xlsx`) va già bene così com'è. Poi, nella tua app:
 
 **Gestione asta → Listone** → trascina il file → *Genera il listone*.
 
@@ -64,7 +69,8 @@ Fatto: 500 e passa calciatori pronti.
 
 Vuoi anche fasce d'asta, probabili formazioni e gerarchie in porta? Incolla ognuno di quegli
 articoli in un file di testo, chiamalo come dice il
-[README](README.md#i-dati-che-devi-procurarti), e trascina anche quelli. Sono tutti
+[README](README.md#i-dati-che-devi-procurarti), e trascina anche quelli. Le **statistiche**
+dell'anno scorso si scaricano da <https://www.fantacalcio.it/statistiche-serie-a>. Sono tutti
 facoltativi: senza, sparisce solo quella colonna.
 
 **Non devi averli tutti adesso.** Torna in quella scheda quando vuoi e aggiungi quello che

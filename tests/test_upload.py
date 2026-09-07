@@ -8,21 +8,27 @@ qualcuno si ritroverebbe un'asta diversa a seconda di come l'ha preparata.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 from scripts.build_players import RAW_DIR, build_payload, find_xlsx
 
+from asta.data.keepers import DEFAULT_GRID_PATH
 from asta.data.players import DEFAULT_PLAYERS_PATH
 from asta.ui.upload import (
+    GRIGLIA as CASELLA_GRIGLIA,
+)
+from asta.ui.upload import (
     OBBLIGATORIO,
+    controlla_griglia,
     costruisci,
     costruisci_da_caselle,
     etichette,
     smista,
     unisci,
 )
-from conftest import serve_il_listone
+from conftest import serve_il_listone, serve_la_griglia
 
 QUOTAZIONI = "Quotazioni_Fantacalcio_Stagione_2026_27.xlsx"
 
@@ -98,8 +104,6 @@ def test_il_listone_generato_dall_app_e_quello_della_riga_di_comando():
     """La prova che le due strade non divergono."""
     files = {p.name: p.read_bytes() for p in RAW_DIR.iterdir() if p.suffix in {".xlsx", ".md"}}
     dall_app, _, _ = costruisci(files)
-
-    import json
 
     committato = json.loads(DEFAULT_PLAYERS_PATH.read_text(encoding="utf-8"))
     assert dall_app == committato
@@ -196,3 +200,88 @@ def test_il_primo_giorno_basta_il_solo_xlsx():
 def test_senza_il_listone_ufficiale_non_si_genera_nemmeno_a_pezzi():
     with pytest.raises(ValueError, match="listone ufficiale"):
         costruisci_da_caselle({"tiers_A": ("attaccanti.md", b"fasce")})
+
+
+# ------------------------------------------------------- griglia dei portieri
+
+GRIGLIA = "griglia_portieri_2026_27.json"
+
+#: Tre squadre invece di venti: la simmetria si controlla uguale.
+GRIGLIA_BUONA: dict[str, object] = {
+    "teams": ["Atalanta", "Bologna", "Cagliari"],
+    "values": [[0, 7, 3], [7, 0, 5], [3, 5, 0]],
+    "highlight_from": 5,
+    "note": "prova",
+}
+
+
+def _griglia(**modifiche: object) -> bytes:
+    return json.dumps({**GRIGLIA_BUONA, **modifiche}).encode("utf-8")
+
+
+def test_la_griglia_ha_una_casella_sua():
+    scelti, ignorati = smista([QUOTAZIONI, GRIGLIA])
+
+    assert scelti[CASELLA_GRIGLIA] == GRIGLIA
+    assert ignorati == []
+
+
+@serve_il_listone
+def test_la_griglia_si_archivia_ma_non_entra_nel_listone():
+    """Non e' un dato dei calciatori: la pagina Portieri la legge per conto suo.
+
+    Se finisse in ``build_payload`` sarebbe un argomento che nessuno usa, e
+    basterebbe caricarla per cambiare il listone senza motivo.
+    """
+    xlsx = find_xlsx(RAW_DIR)
+    senza = unisci({}, {xlsx.name: xlsx.read_bytes()})
+    con = unisci(senza, {GRIGLIA: _griglia()})
+
+    assert con[CASELLA_GRIGLIA] == (GRIGLIA, _griglia()), "archiviata"
+    assert costruisci_da_caselle(con)[0] == costruisci_da_caselle(senza)[0]
+
+
+def test_una_griglia_a_posto_non_ha_niente_da_dire():
+    assert controlla_griglia(_griglia()) == []
+
+
+def test_una_griglia_storta_si_vede_subito():
+    """La griglia e' trascritta a mano da un'immagine: l'errore e' un numero.
+
+    Essendo simmetrica, ogni coppia e' stata scritta due volte: se le due
+    scritture non coincidono, una delle due e' sbagliata.
+    """
+    storta = _griglia(values=[[0, 7, 3], [9, 0, 5], [3, 5, 0]])
+    (avviso,) = controlla_griglia(storta)
+
+    assert "Atalanta/Bologna" in avviso
+
+
+def test_una_griglia_non_quadrata_si_vede_subito():
+    (avviso,) = controlla_griglia(_griglia(values=[[0, 7, 3], [7, 0, 5]]))
+
+    assert "quadrata" in avviso
+
+
+def test_una_griglia_illeggibile_viene_detta_non_ignorata():
+    """Senza avviso l'unico segnale sarebbe un riquadro che non compare."""
+    assert controlla_griglia(b"{ meta") != []
+    assert controlla_griglia(json.dumps({"teams": []}).encode("utf-8")) != []
+
+
+@serve_il_listone
+def test_una_griglia_storta_non_impedisce_di_generare_il_listone():
+    """Avvisa, ma non blocca: la griglia e' un di piu', il listone no."""
+    xlsx = find_xlsx(RAW_DIR)
+    storta = _griglia(values=[[0, 7, 3], [9, 0, 5], [3, 5, 0]])
+    caselle = unisci({}, {xlsx.name: xlsx.read_bytes(), GRIGLIA: storta})
+    payload, segnalazioni = costruisci_da_caselle(caselle)
+
+    assert payload["count"] > 0
+    assert any("griglia" in s.lower() for s in segnalazioni)
+
+
+@serve_la_griglia
+def test_la_griglia_committata_supera_il_controllo():
+    """Lo stesso controllo che la suite fa sul file vero, dal lato caricamento."""
+    assert controlla_griglia(DEFAULT_GRID_PATH.read_bytes()) == []

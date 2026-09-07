@@ -1070,6 +1070,6 @@ def test_l_esito_del_caricamento_sopravvive_al_rerun(shared_repo):
 
     assert not at.exception
     assert any("533 calciatori" in s.value for s in at.success)
-    assert any("1 nomi da controllare" in e.label for e in at.expander)
+    assert any("1 cosa da controllare" in e.label for e in at.expander)
     # Mostrato una volta sola: al giro dopo non deve ricomparire.
     assert not at.run().success

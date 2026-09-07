@@ -466,9 +466,17 @@ def _listone_caricato(state: AuctionState) -> None:
     )
 
 
-#: Estensioni accettate dal caricamento: i due Excel ufficiali e gli articoli
-#: incollati in un file di testo.
-FORMATI_LISTONE = ["xlsx", "md", "txt"]
+#: Estensioni accettate dal caricamento: i due Excel ufficiali, gli articoli
+#: incollati in un file di testo e la griglia dei portieri, che e' un JSON.
+FORMATI_LISTONE = ["xlsx", "md", "txt", "json"]
+
+#: Dove si scaricano i due file ufficiali. Il posto giusto per dirlo e' qui,
+#: dentro il riquadro che li chiede: chi apre l'app per la prima volta non ha
+#: nessun motivo di sapere che il listone si prende da fantacalcio.it.
+FONTI = (
+    "[Quotazioni](https://www.fantacalcio.it/quotazioni-fantacalcio) · "
+    "[Statistiche](https://www.fantacalcio.it/statistiche-serie-a)"
+)
 
 #: Chiave di sessione con l'esito dell'ultimo caricamento, da mostrare dopo
 #: il rerun che altrimenti se lo porterebbe via.
@@ -560,6 +568,7 @@ def _aggiungi_file(service: AuctionService, caselle: Caselle) -> None:
         f"settimana prima dell'asta. L'unico indispensabile e' `{XLSX_GLOB}`, "
         "e ogni file si riconosce dal nome."
     )
+    st.caption(f"I due Excel ufficiali si scaricano da fantacalcio.it: {FONTI}.")
     caricati = st.file_uploader(
         "File del listone",
         type=FORMATI_LISTONE,
@@ -647,8 +656,11 @@ def _mostra_esito(esito: dict[str, object]) -> None:
     assert isinstance(segnalazioni, list)
     if segnalazioni:
         # Non sono errori: sono nomi che lo script non ha saputo agganciare
-        # con certezza, e li mostra perche' li giudichi tu.
-        with st.expander(f"⚠️ {len(segnalazioni)} nomi da controllare"):
+        # con certezza, o una griglia che non torna, e si mostrano perche' li
+        # giudichi tu. "Cose" e non "nomi": da quando c'e' anche la griglia,
+        # non parlano piu' tutte di un calciatore.
+        quante = len(segnalazioni)
+        with st.expander(f"⚠️ {quante} cos{'a' if quante == 1 else 'e'} da controllare"):
             for riga in segnalazioni:
                 st.write(f"- {riga}")
 
