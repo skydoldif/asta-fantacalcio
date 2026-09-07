@@ -58,4 +58,7 @@ pages = [
 # tutte, e sta fuori dai frammenti che si auto-aggiornano - un iframe audio
 # ridisegnato ogni due secondi taglierebbe il suono a meta'.
 soundbar.render_sidebar()
+# L'avviso sta sopra la navigazione, quindi sopra qualunque pagina: e' il
+# posto dell'unica riga che deve leggere chiunque entri, comunque sia entrato.
+viewer.avviso()
 st.navigation(pages, position="top").run()

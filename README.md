@@ -802,6 +802,20 @@ Due cose da sapere prima di pubblicarla:
 - **Streamlit Cloud mette a dormire le app inattive**: chi apre il link dopo giorni aspetta
   mezzo minuto. È il primo commento che riceverai, tanto vale scriverlo accanto al link.
 
+### Dirlo, che è finta
+
+L'unico vero fraintendimento possibile è che qualcuno prenda quelle quotazioni sul serio, e un
+avviso nel README non lo legge nessuno. C'è quindi un secret che scrive una riga **in cima a
+ogni pagina**, prima della navigazione:
+
+```toml
+avviso = "Demo con calciatori di fantasia: le quotazioni non sono quelle vere."
+```
+
+Vuoto o assente non si vede e non occupa spazio. Non è nato solo per la demo: è il posto per
+qualunque cosa vada detta a tutti senza toccare il codice — «si comincia alle 21», «asta
+rinviata a giovedì».
+
 ### Il branch `demo`
 
 I dati finti **non stanno su `main`**: "nella repo non c'è nessun dato" deve restare vero per

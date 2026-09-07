@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 import streamlit as st
 from scripts.genera_demo import PARTECIPANTI, SQUADRE, genera
+from streamlit.testing.v1 import AppTest
 
 from asta.data.keepers import load_keeper_grid
 from asta.data.players import load_listone
@@ -196,3 +197,25 @@ def test_un_file_di_esempio_rovinato_non_fa_cadere_l_app(tmp_path: Path, monkeyp
     monkeypatch.setattr(wiring.config, "database_url", lambda: "")
 
     assert wiring.get_repository().load() == []
+
+
+# ------------------------------------------------------------------- l'avviso
+
+
+def test_l_avviso_dei_secrets_compare_in_cima(monkeypatch):
+    """La riga che dice "e' finta": senza, resta solo il README, che non legge nessuno."""
+    monkeypatch.setattr(wiring.config, "avviso", lambda: "Listone di fantasia.")
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=60)
+    at.run()
+
+    assert not at.exception
+    assert any("Listone di fantasia." in i.value for i in at.info)
+
+
+def test_senza_avviso_non_si_occupa_spazio(monkeypatch):
+    monkeypatch.setattr(wiring.config, "avviso", lambda: "")
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=60)
+    at.run()
+
+    assert not at.exception
+    assert not any("fantasia" in i.value for i in at.info)
