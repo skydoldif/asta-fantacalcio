@@ -45,6 +45,7 @@ diverso da pagina a pagina.
 - [Struttura del progetto](#struttura-del-progetto)
 - [Sviluppo e test](#sviluppo-e-test)
 - [Aggiornare il listone](#aggiornare-il-listone) — dall'app o da terminale
+- [Una demo pubblica](#una-demo-pubblica-con-calciatori-inventati) — dati finti, niente database
 - [Problemi frequenti](#problemi-frequenti)
 - [Licenza, e di chi sono i dati](#licenza-e-di-chi-sono-i-dati)
 
@@ -423,6 +424,7 @@ in cache: chi non tocca la Soundbar non scarica nulla.
 │   ├── griglia_portieri_*.json # la griglia delle coppie, trascritta dall'immagine
 │   └── raw/                   # xlsx ufficiali, gerarchie dei piazzati, CSV d'esempio
 ├── scripts/build_players.py   # xlsx → json, con la sola libreria standard
+├── scripts/genera_demo.py     # listone finto e asta a meta', per la vetrina pubblica
 ├── scripts/optimize_crests.py # ripulisce e alleggerisce gli SVG degli stemmi
 ├── static/loghi/              # stemmi di Serie A, serviti come file statici
 ├── static/audio/             # audio della Soundbar (calcio/ e amici/)
@@ -754,6 +756,73 @@ fare, la forma è questa:
 
 `values` dev'essere quadrata quanto `teams`, simmetrica, con la diagonale a zero. I nomi delle
 squadre sono quelli del listone.
+
+## Una demo pubblica, con calciatori inventati
+
+L'app si puo' lasciare online come vetrina, ma **non con i dati veri**: un indirizzo pubblico
+è una forma di distribuzione più diretta di una repo, non meno. E un'app senza listone non
+mostra niente — si apre e c'è un pannello che chiede di caricare un file.
+
+La terza strada è un listone **inventato**:
+
+```bash
+python scripts/genera_demo.py data
+```
+
+Scrive tre file: il listone (480 calciatori con nomi costruiti da sillabe, quotazioni e
+statistiche verosimili, fasce, formazioni tipo, gerarchie in porta, rigoristi e infortunati),
+la griglia delle coppie, e `demo_eventi.json` — un'asta portata a metà, con i portieri
+completati e i difensori in corso.
+
+Le squadre di Serie A restano quelle vere: nominarle in uno strumento da fantacalcio è uso
+descrittivo, e così gli stemmi funzionano. **Non c'è un solo calciatore reale.**
+
+Ogni aggiudicazione dell'asta finta passa da `validate_assignment`, la stessa funzione che
+ferma l'admin quando sbaglia: il log della demo è legale per le regole dell'app, non per
+quelle che si ricordava chi ha scritto il generatore.
+
+Il generatore **si rifiuta di sovrascrivere** file già esistenti senza `--sovrascrivi`: puntarlo
+per sbaglio su `data/` non ti cancella il listone vero.
+
+### Niente database
+
+La demo non ha bisogno di Supabase. Senza `database_url` l'app usa il repository in memoria,
+e all'avvio `wiring._semina_la_demo` ci versa dentro `data/demo_eventi.json`.
+
+Il rovescio della medaglia è anche il pregio: **la demo si ripara da sola**. Quello che
+combina un visitatore resta finché vive il processo e sparisce al riavvio successivo — che su
+Streamlit Cloud arriva a ogni push e dopo ogni dormita. Per un'asta vera sarebbe inaccettabile,
+ed è esattamente il motivo per cui l'asta vera usa il database.
+
+Due cose da sapere prima di pubblicarla:
+
+- **il repository in memoria è condiviso da tutti i visitatori**, non uno per browser: vive in
+  `cache_resource`, che è di processo. Metti comunque `admin_password`, o il primo che passa
+  cambia la demo per tutti fino al riavvio;
+- **Streamlit Cloud mette a dormire le app inattive**: chi apre il link dopo giorni aspetta
+  mezzo minuto. È il primo commento che riceverai, tanto vale scriverlo accanto al link.
+
+### Il branch `demo`
+
+I dati finti **non stanno su `main`**: "nella repo non c'è nessun dato" deve restare vero per
+chi la clona. Stanno su un branch a parte, che è quello che punti su Streamlit Cloud:
+
+```bash
+git switch -c demo
+python scripts/genera_demo.py data
+printf '!data/players_2026_27.json\n!data/griglia_portieri_2026_27.json\n' >> .gitignore
+git add -A && git commit -m "Dati della demo"
+```
+
+Poi su [share.streamlit.io](https://share.streamlit.io) crei una seconda app sulla stessa repo
+scegliendo **branch `demo`**, e nei secrets metti solo `admin_password`. Nessun
+`database_url`, nessun Supabase.
+
+Quando `main` cambia, la demo si aggiorna con un `git merge main`.
+
+Un'ultima cosa: **scrivi da qualche parte che è finta.** Una riga basta — «listone di
+fantasia, i calciatori non esistono» — ed evita l'unico vero fraintendimento possibile, cioè
+che qualcuno prenda quelle quotazioni sul serio.
 
 ## Problemi frequenti
 

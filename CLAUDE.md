@@ -90,12 +90,23 @@ l'annullamento non cancella niente — mette `active=False` sull'evento.
 | `src/asta/domain/` | logica pura. **Non importa mai Streamlit**, né niente di esterno. È l'unica parte con `mypy --strict`. |
 | `src/asta/data/` | letture da disco e dal database. |
 | `src/asta/ui/` | Streamlit. Sacrificabile: se un giorno l'interfaccia si rifà, il dominio resta. |
-| `scripts/` | strumenti da riga di comando, la sola libreria standard. |
+| `scripts/` | strumenti da riga di comando. Solo libreria standard e `asta.domain`, mai Streamlit. |
 
 Il codice della riga di comando e quello del caricamento dall'app **non sono duplicati**:
 `asta/ui/upload.py` scrive i file caricati in una cartella temporanea e chiama la stessa
 `build_payload` dello script. C'è un test che verifica che le due strade diano un listone
 identico byte per byte, ed è il test che non deve mai diventare rosso.
+
+### La demo pubblica
+
+`python scripts/genera_demo.py data` fabbrica un listone di calciatori **inventati** e
+un'asta a metà, per lasciare online una vetrina senza pubblicare i dati di nessuno. Non serve
+un database: senza `database_url` l'app usa il repository in memoria e all'avvio ci versa
+`data/demo_eventi.json`, quindi la demo riparte dallo stesso punto a ogni riavvio.
+
+Due cose da non dimenticare se te ne parlano: il generatore **si rifiuta di sovrascrivere**
+file esistenti (puntarlo su `data/` non cancella il listone vero), e i dati finti vanno su un
+branch a parte, non su `main`.
 
 ### Le trappole di Streamlit già pagate, in produzione
 

@@ -10,6 +10,7 @@ e ricaricare la pagina e' la prima cosa che si fa quando la rete fa i capricci.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import tempfile
 import time
@@ -29,6 +30,7 @@ from asta.data.players import (
 )
 from asta.data.repository import AuctionRepository, InMemoryRepository, PostgresRepository
 from asta.domain.events import Event
+from asta.domain.export import restore_events
 from asta.domain.models import Listone
 from asta.domain.reducer import AuctionState, build_state
 from asta.service import AuctionService
@@ -198,16 +200,48 @@ def _engine(url: str) -> Any:
     )
 
 
+#: L'asta di esempio da cui riparte una demo senza database.
+#:
+#: Nella repo non c'e': la genera ``scripts/genera_demo.py``, e la si committa
+#: solo dove serve - il branch della demo pubblica.
+DEMO_EVENTI = Path(__file__).resolve().parents[3] / "data" / "demo_eventi.json"
+
+
+def _semina_la_demo(repo: AuctionRepository) -> None:
+    """Mette nell'archivio in memoria l'asta di esempio, se ce n'e' una.
+
+    Senza database il log vive nel processo e **nasce vuoto a ogni riavvio**:
+    una demo pubblica direbbe "l'asta non e' ancora stata configurata" a
+    chiunque la apra dopo una dormita di Streamlit Cloud. Con questo file
+    riparte sempre dallo stesso punto.
+
+    Il rovescio della medaglia e' anche il pregio: la demo **si ripara da
+    sola**. Quello che un visitatore combina resta finche' il processo vive, e
+    sparisce al riavvio successivo. Per un'asta vera sarebbe inaccettabile, ed
+    e' esattamente perche' l'asta vera usa il database.
+
+    Un file rovinato non ferma niente: si riparte da vuoto, che e' come
+    funzionava prima che questo esistesse.
+    """
+    if not DEMO_EVENTI.is_file():
+        return
+    with contextlib.suppress(OSError, ValueError):
+        repo.replace_all(restore_events(DEMO_EVENTI.read_text(encoding="utf-8")))
+
+
 @st.cache_resource(show_spinner=False)
 def get_repository() -> AuctionRepository:
     """Repository condiviso fra admin e spettatori.
 
     Senza ``database_url`` si ricade su un repository in memoria: l'asta vive
-    finche' vive il processo, utile solo per provare l'app.
+    finche' vive il processo. Serve per provare l'app in locale e per la demo
+    pubblica, che da li' riparte a ogni riavvio.
     """
     url = config.database_url()
     if not url:
-        return InMemoryRepository()
+        repo: AuctionRepository = InMemoryRepository()
+        _semina_la_demo(repo)
+        return repo
     repo = PostgresRepository(_engine(url), auction_id=config.auction_id())
     repo.ensure_schema()
     return repo

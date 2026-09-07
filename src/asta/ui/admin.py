@@ -161,9 +161,14 @@ def render() -> None:
 def _sync_banner(service: AuctionService) -> None:
     """Mostra lo stato della sincronizzazione col database."""
     if config.demo_mode():
+        # "Gli spettatori non vedono nulla" era vero solo con piu' processi:
+        # su un container solo il repository in memoria e' condiviso, e la
+        # vista utente funziona benissimo. Quello che manca davvero e' che
+        # l'asta non sopravvive a un riavvio.
         st.warning(
-            "**Modalita demo**: nessun database configurato, l'asta vive solo in memoria "
-            "e gli spettatori non vedono nulla. Imposta `database_url` nei secrets."
+            "**Modalita demo**: nessun database configurato. L'asta vive nella memoria "
+            "dell'app e sparisce a ogni riavvio - va bene per provare, non per la "
+            "serata. Imposta `database_url` nei secrets."
         )
     if service.synced:
         return
