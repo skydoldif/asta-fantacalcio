@@ -363,7 +363,7 @@ def costruisci_griglia(rng: random.Random) -> dict[str, Any]:
     valori = [[0] * lato for _ in range(lato)]
     for i in range(lato):
         for j in range(i + 1, lato):
-            valori[i][j] = valori[j][i] = rng.randint(48, 99)
+            valori[i][j] = valori[j][i] = rng.randint(60, 99)
     return {
         "source": "griglia-demo",
         "note": "Griglia di esempio: i numeri sono inventati come i calciatori.",
