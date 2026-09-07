@@ -63,6 +63,13 @@ from asta.domain.models import (  # noqa: E402
 from asta.domain.reducer import build_state  # noqa: E402
 from asta.domain.rules import max_bid, validate_assignment  # noqa: E402
 
+#: La parola che marca i file di fantasia, nel loro campo ``source``.
+#:
+#: Non e' decorazione: ``controlla_pubblica.py`` guarda quella parola per
+#: decidere se un listone committato e' inventato o e' quello vero, e senza
+#: considera vero - che nel dubbio e' l'errore giusto da fare.
+MARCA = "demo"
+
 #: Il seme. Cambiarlo da' una demo diversa, non una demo migliore.
 SEME = 2027
 
@@ -329,7 +336,7 @@ def costruisci_listone(rng: random.Random) -> dict[str, Any]:
     """Il listone finto, nella stessa forma di quello di ``build_players``."""
     giocatori = _calciatori(rng)
     return {
-        "source": "listone-demo (calciatori inventati)",
+        "source": f"listone-{MARCA} (calciatori inventati)",
         "count": len(giocatori),
         "stats_source": "statistiche-demo",
         "with_stats": len(giocatori),
@@ -365,7 +372,7 @@ def costruisci_griglia(rng: random.Random) -> dict[str, Any]:
         for j in range(i + 1, lato):
             valori[i][j] = valori[j][i] = rng.randint(60, 99)
     return {
-        "source": "griglia-demo",
+        "source": f"griglia-{MARCA}",
         "note": "Griglia di esempio: i numeri sono inventati come i calciatori.",
         "highlight_from": 89,
         "teams": list(SQUADRE),

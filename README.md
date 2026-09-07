@@ -425,6 +425,7 @@ in cache: chi non tocca la Soundbar non scarica nulla.
 │   └── raw/                   # xlsx ufficiali, gerarchie dei piazzati, CSV d'esempio
 ├── scripts/build_players.py   # xlsx → json, con la sola libreria standard
 ├── scripts/genera_demo.py     # listone finto e asta a meta', per la vetrina pubblica
+├── scripts/controlla_pubblica.py # cosa non deve finire in una repo pubblica
 ├── scripts/optimize_crests.py # ripulisce e alleggerisce gli SVG degli stemmi
 ├── static/loghi/              # stemmi di Serie A, serviti come file statici
 ├── static/audio/             # audio della Soundbar (calcio/ e amici/)
@@ -837,6 +838,31 @@ Quando `main` cambia, la demo si aggiorna con un `git merge main`.
 Un'ultima cosa: **scrivi da qualche parte che è finta.** Una riga basta — «listone di
 fantasia, i calciatori non esistono» — ed evita l'unico vero fraintendimento possibile, cioè
 che qualcuno prenda quelle quotazioni sul serio.
+
+### Prima di pubblicare, un comando
+
+```bash
+python scripts/controlla_pubblica.py ../fantacalcio-asta-pubblica
+```
+
+Guarda **ogni file mai committato su ogni branch**, non lo stato attuale, e si ferma se trova
+qualcosa che non è nostro: gli Excel di fantacalcio.it, gli articoli, gli stemmi, gli audio,
+un `secrets.toml`. Controlla anche che i listoni committati siano **quelli di fantasia** — sul
+branch della demo un `data/players_*.json` ci sta, ma solo se dentro ci sono i calciatori
+inventati — e che il `.gitignore` copra ancora quello che deve.
+
+Guarda la storia e non la cartella perché è lì che sta la trappola: **git non dimentica.** Un
+file cancellato con un commit resta scaricabile da chiunque cloni, e accorgersene dopo vuol
+dire riscrivere la storia e invalidare ogni copia già fatta. C'è un test che committa un file,
+lo cancella, e verifica che lo script lo trovi lo stesso.
+
+Del contenuto non stampa mai niente: di un file trovato dice il percorso e il commit, che è
+quanto basta per andarlo a togliere.
+
+> Sulla repo **privata** fallisce di proposito, con quarantacinque file elencati. Non è un
+> guasto: lì i dati veri ci stanno, ed è esattamente il motivo per cui quella repo non si
+> pubblica. Non è in CI per la stessa ragione — lo stesso workflow gira su tutt'e due, e non
+> può pretendere cose opposte.
 
 ## Problemi frequenti
 
