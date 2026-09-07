@@ -108,6 +108,16 @@ Due cose da non dimenticare se te ne parlano: il generatore **si rifiuta di sovr
 file esistenti (puntarlo su `data/` non cancella il listone vero), e i dati finti vanno su un
 branch a parte, non su `main`.
 
+Prima di rendere pubblica una repo, o di pubblicarne una versione nuova:
+
+```bash
+python scripts/controlla_pubblica.py <la repo pubblica>
+```
+
+Guarda ogni file mai committato su ogni branch — non lo stato attuale, perché un file
+cancellato resta scaricabile da chi clona — e si ferma su dati altrui, secrets, o un listone
+che non è quello di fantasia. Sulla repo privata fallisce di proposito.
+
 ### Le trappole di Streamlit già pagate, in produzione
 
 - **`st.cache_data` serializza** quello che restituisce. Sul log degli eventi ha fatto cadere
