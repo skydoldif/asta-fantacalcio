@@ -72,10 +72,11 @@ Vuoi anche fasce d'asta, probabili formazioni e gerarchie in porta? Nella stessa
 file di testo, la chiami come dice il [README](README.md#i-dati-che-devi-procurarti), e
 trascini anche quella.
 
+Sono tutti facoltativi: senza, sparisce solo quella colonna.
+
 > Per non copiaincollare a mano: [Obsidian Web
 > Clipper](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)
-> salva una pagina web **già in markdown**, che è esattamente il formato che l'app si aspetta. Sono tutti
-facoltativi: senza, sparisce solo quella colonna.
+> salva una pagina web **già in markdown**, che è esattamente il formato che l'app si aspetta.
 
 **Non devi averli tutti adesso.** Torna in quella scheda quando vuoi e aggiungi quello che
 ti manca: le quotazioni escono a luglio, le probabili formazioni la settimana prima
@@ -83,8 +84,8 @@ dell'asta. Quello che hai già caricato resta dov'è, e il listone si rigenera d
 
 ## 5. Configura l'asta · 2 minuti
 
-Sempre in **Impostazioni**: modalità, crediti, quanti calciatori per ruolo, i nomi delle
-squadre. Poi *Salva*.
+Passa alla scheda **Impostazioni**, accanto a quella del listone: modalità, crediti, quanti
+calciatori per ruolo, i nomi delle squadre. Poi *Salva*.
 
 ## 6. Fai una prova, sul serio
 
