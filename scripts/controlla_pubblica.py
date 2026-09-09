@@ -43,15 +43,15 @@ from scripts.genera_demo import MARCA  # noqa: E402
 AUDIO = {".mp3", ".m4a", ".wav", ".ogg", ".opus"}
 IMMAGINI = {".svg", ".png", ".webp", ".jpg", ".jpeg"}
 
-#: File il cui nome dice gia' che sono di qualcun altro, o nostri e segreti.
-#:
-#: L'elenco e' di **cose da non pubblicare**, non di cose da pubblicare: un
-#: file nuovo che nessuno ha previsto passa, ed e' voluto. Le categorie qui
-#: sotto sono le sole che in questo progetto non sono nostre da regalare.
 #: Quanti file elencare prima di troncare. Un elenco di cinquanta righe non
 #: si legge, e per capire che la repo non va pubblicata ne bastano poche.
 PRIMI = 12
 
+#: File di esempio su cui provare il .gitignore, uno per categoria.
+#:
+#: Non devono esistere: ``git check-ignore`` ragiona sul percorso, non sul
+#: disco. Servono a chiedere "se domani ci finisse un file cosi', te ne
+#: accorgeresti?".
 ESEMPI_DA_IGNORARE = (
     ".streamlit/secrets.toml",
     "data/raw/Quotazioni_Fantacalcio_Stagione_2026_27.xlsx",
