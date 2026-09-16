@@ -7,7 +7,7 @@ Il [README](README.md) spiega tutto il resto: leggilo dopo, non serve adesso.
 
 > **Se usi un assistente AI** (Claude Code o simili), aprigli questa cartella e digli
 > «aiutami a mettere in piedi l'asta»: nella repo c'è un [CLAUDE.md](CLAUDE.md) che lo mette
-> già al corrente di tutto, comprese le quattro cose su cui si incaglia chi parte da zero.
+> già al corrente di tutto, comprese le cinque cose su cui si incaglia chi parte da zero.
 
 ---
 

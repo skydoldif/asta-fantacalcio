@@ -19,3 +19,8 @@ CREATE TABLE IF NOT EXISTS auction_event (
 );
 
 CREATE INDEX IF NOT EXISTS auction_event_by_auction ON auction_event (auction_id, seq);
+
+-- Supabase espone le tabelle di "public" anche su un'API web a cui basta la
+-- chiave anon. RLS accesa senza policy la chiude; l'app, proprietaria della
+-- tabella, non la subisce. ensure_schema lo fa gia' da sola.
+ALTER TABLE auction_event ENABLE ROW LEVEL SECURITY;
