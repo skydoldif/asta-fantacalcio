@@ -9,6 +9,7 @@ non vedono.
 from __future__ import annotations
 
 import re
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -890,6 +891,17 @@ def test_sul_telefono_la_coda_si_corica_invece_di_sparire(admin):
 # --------------------------------------------------- filtri e cambio pagina
 
 
+def _chiavi(stato: Any) -> list[str]:
+    """Le chiavi dello stato di un ``AppTest``, su ogni versione di Streamlit.
+
+    Fino alla 1.63 ``AppTest.session_state`` era lo stato nudo, da leggere con
+    ``filtered_state``; dalla 1.64 e' un involucro che si scorre come un dict,
+    e ``filtered_state`` diventa la ricerca di una chiave con quel nome.
+    """
+    filtrato = getattr(stato, "filtered_state", None)
+    return list(filtrato if isinstance(filtrato, dict) else stato)
+
+
 def _dopo_un_giro_altrove(path: str, prima: AppTest) -> AppTest:
     """Riapre una pagina come dopo essere andati altrove e tornati indietro.
 
@@ -900,7 +912,7 @@ def _dopo_un_giro_altrove(path: str, prima: AppTest) -> AppTest:
     la pagina nuova eredita solo quello.
     """
     at = AppTest.from_file(path, default_timeout=60)
-    for chiave in prima.session_state.filtered_state:
+    for chiave in _chiavi(prima.session_state):
         if chiave.endswith(SUFFISSO_MEMORIA):
             at.session_state[chiave] = prima.session_state[chiave]
     at.run()
