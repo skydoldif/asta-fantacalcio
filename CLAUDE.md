@@ -38,7 +38,7 @@ che dà già il formato che l'app si aspetta.
 Il listone **non si committa e non si genera da terminale**: si carica dall'app, da *Gestione
 asta → Listone*, e finisce nel database. Anche a pezzi, in giorni diversi.
 
-### Le quattro cose su cui si incagliano tutti
+### Le cinque cose su cui si incagliano tutti
 
 Sono trappole vere, già pagate. Se qualcosa non funziona, guarda prima qui.
 
@@ -53,6 +53,14 @@ Sono trappole vere, già pagate. Se qualcosa non funziona, guarda prima qui.
    qualcuno propone di aprire l'SQL Editor, non serve.
 4. **L'app va resa pubblica** dal pulsante *Share* di Streamlit, altrimenti ogni amico dovrebbe
    autenticarsi. La repo può restare privata: sono due cose separate.
+5. **Il Security Advisor di Supabase grida "RLS Disabled in Public"** sulle tabelle
+   `auction_*`. Ha ragione: senza RLS chiunque abbia la chiave `anon` del progetto le legge
+   e le riscrive dall'API web di Supabase. Dalla versione attuale `ensure_schema` la accende
+   da sola al primo avvio; su un database creato prima basta riaprire l'app, oppure
+   `ALTER TABLE <tabella> ENABLE ROW LEVEL SECURITY;` sulle tre tabelle dall'SQL Editor.
+   **Nessuna policy**: senza policy l'API pubblica non vede niente, e l'app non se ne
+   accorge perché si collega come proprietaria delle tabelle. Se l'assistente di Supabase
+   propone di aggiungerne una, non serve.
 
 `python scripts/check_db.py` diagnostica l'URL del database e dice in italiano cosa non va —
 ma è per chi ha un terminale, non per il caso di sopra.

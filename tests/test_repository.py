@@ -19,7 +19,12 @@ from collections.abc import Iterator
 
 import pytest
 
-from asta.data.repository import AuctionRepository, InMemoryRepository, PostgresRepository
+from asta.data.repository import (
+    TABELLE,
+    AuctionRepository,
+    InMemoryRepository,
+    PostgresRepository,
+)
 from asta.domain.events import Event, EventType
 
 #: URL del database di prova. Vuoto: il caso Postgres si salta.
@@ -260,6 +265,45 @@ def test_ensure_schema_e_idempotente(postgres):
     postgres.append(evento(1))
     postgres.ensure_schema()
     assert len(postgres.load()) == 1
+
+
+def test_le_tabelle_hanno_rls_accesa(postgres):
+    """Il Security Advisor di Supabase la segna come errore critico, se manca."""
+    from sqlalchemy import text
+
+    with postgres._engine.connect() as conn:  # type: ignore[attr-defined]
+        accese = dict(
+            conn.execute(
+                text("SELECT relname, relrowsecurity FROM pg_class WHERE relname = ANY(:t)"),
+                {"t": list(TABELLE)},
+            ).all()
+        )
+
+    assert accese == dict.fromkeys(TABELLE, True)
+
+
+def test_con_rls_l_api_pubblica_non_vede_niente_e_l_app_si(postgres):
+    """Il ruolo ``anon`` di Supabase ha i GRANT su tutto: lo ferma solo RLS.
+
+    Qui si rifa' quel ruolo in una transazione annullata alla fine, cosi' il
+    database di prova resta com'era.
+    """
+    from sqlalchemy import text
+
+    postgres.append(evento(1))
+    ruolo = f"anon_{uuid.uuid4().hex[:8]}"
+    with postgres._engine.connect() as conn:  # type: ignore[attr-defined]
+        transazione = conn.begin()
+        try:
+            conn.execute(text(f"CREATE ROLE {ruolo} NOLOGIN"))
+            conn.execute(text(f"GRANT SELECT, INSERT ON auction_event TO {ruolo}"))
+            conn.execute(text(f"SET LOCAL ROLE {ruolo}"))
+            visti = conn.execute(text("SELECT count(*) FROM auction_event")).scalar_one()
+        finally:
+            transazione.rollback()
+
+    assert visti == 0, "l'API pubblica non deve vedere l'asta"
+    assert len(postgres.load()) == 1, "l'app, proprietaria delle tabelle, si'"
 
 
 def test_roundtrip_serializzazione():

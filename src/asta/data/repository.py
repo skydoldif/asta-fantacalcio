@@ -146,6 +146,10 @@ class InMemoryRepository:
             self._listone_files.pop(casella, None)
 
 
+#: Le tabelle che ``PostgresRepository.ensure_schema`` crea.
+TABELLE = ("auction_event", "auction_listone", "auction_listone_file")
+
+
 class PostgresRepository:
     """Repository su Postgres (Supabase, Neon, o qualsiasi altro).
 
@@ -166,7 +170,7 @@ class PostgresRepository:
         return text(statement)
 
     def ensure_schema(self) -> None:
-        """Crea la tabella se manca. Idempotente."""
+        """Crea le tabelle se mancano e ci accende RLS. Idempotente."""
         ddl = """
             CREATE TABLE IF NOT EXISTS auction_event (
                 auction_id  TEXT        NOT NULL,
@@ -206,6 +210,32 @@ class PostgresRepository:
             conn.execute(self._sql(ddl))
             conn.execute(self._sql(ddl_listone))
             conn.execute(self._sql(ddl_files))
+        self._accendi_rls()
+
+    def _accendi_rls(self) -> None:
+        """Accende RLS sulle tabelle che non ce l'hanno, senza policy.
+
+        Supabase espone ogni tabella di ``public`` anche su un'API web, a cui
+        basta la chiave ``anon``: con RLS spenta chiunque la conosca legge e
+        riscrive l'asta. RLS accesa e **nessuna policy** chiude quella porta,
+        e l'app non se ne accorge: si collega come proprietaria delle
+        tabelle, e la proprietaria RLS non la subisce.
+
+        Solo dove manca, perche' ``ALTER TABLE`` blocca la tabella e l'app
+        riparte anche ad asta in corso. E in una transazione a parte che non
+        fa cadere niente: se l'utente non e' il proprietario non la puo'
+        accendere, ma l'asta deve partire lo stesso.
+        """
+        from sqlalchemy.exc import SQLAlchemyError
+
+        query = "SELECT relname FROM pg_class WHERE relname = ANY(:t) AND NOT relrowsecurity"
+        try:
+            with self._engine.begin() as conn:  # type: ignore[attr-defined]
+                spente = conn.execute(self._sql(query), {"t": list(TABELLE)}).scalars().all()
+                for tabella in spente:
+                    conn.execute(self._sql(f"ALTER TABLE {tabella} ENABLE ROW LEVEL SECURITY"))
+        except SQLAlchemyError:
+            return
 
     def load_listone(self) -> dict[str, Any] | None:
         query = "SELECT payload FROM auction_listone WHERE auction_id = :aid"
